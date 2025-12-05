@@ -4,6 +4,8 @@ pub mod msg_query;
 pub mod msg_list;
 pub mod contact;
 pub mod media;
+pub mod favorite;
+pub mod sns;
 pub mod merge;
 pub mod msg_parser;
 pub mod bytes_extra;
@@ -16,5 +18,7 @@ pub use msg_query::MsgQuery;
 pub use msg_list::MsgList;
 pub use contact::{ContactHandler, Contact};
 pub use media::{MediaHandler, MediaInfo};
+pub use favorite::{FavoriteHandler, FavoriteItem};
+pub use sns::{SnsHandler, MomentItem};
 pub use msg_parser::MessageParser;
 
