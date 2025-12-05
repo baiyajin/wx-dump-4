@@ -9,10 +9,9 @@ use crate::utils::{AppError, Result};
 use super::models::*;
 
 pub async fn get_contacts(Json(req): Json<ChatContactsRequest>) -> Result<Json<ChatContactsResponse>> {
+    validation::validate_db_path(&req.merge_path)?;
+    
     let db_path = PathBuf::from(&req.merge_path);
-    if !db_path.exists() {
-        return Err(AppError::NotFound(format!("Database not found: {}", req.merge_path)).into());
-    }
 
     let handler = MsgHandler::new(db_path.to_str().unwrap())?;
     handler.add_indexes()?;
@@ -38,10 +37,9 @@ pub async fn get_contacts(Json(req): Json<ChatContactsRequest>) -> Result<Json<C
 }
 
 pub async fn get_msg_count(Json(req): Json<MsgCountRequest>) -> Result<Json<MsgCountResponse>> {
+    validation::validate_db_path(&req.merge_path)?;
+    
     let db_path = PathBuf::from(&req.merge_path);
-    if !db_path.exists() {
-        return Err(AppError::NotFound(format!("Database not found: {}", req.merge_path)).into());
-    }
 
     let handler = MsgHandler::new(db_path.to_str().unwrap())?;
     handler.add_indexes()?;
@@ -52,11 +50,11 @@ pub async fn get_msg_count(Json(req): Json<MsgCountRequest>) -> Result<Json<MsgC
 }
 
 pub async fn get_msg_list(Json(req): Json<MsgListRequest>) -> Result<Json<MsgListResponse>> {
+    validation::validate_db_path(&req.merge_path)?;
+    validation::validate_pagination(req.start, req.limit)?;
+    validation::validate_time_range(req.start_time, req.end_time)?;
+    
     let db_path = PathBuf::from(&req.merge_path);
-    if !db_path.exists() {
-        return Err(AppError::NotFound(format!("Database not found: {}", req.merge_path)).into());
-    }
-
     let handler = MsgHandler::new(db_path.to_str().unwrap())?;
     handler.add_indexes()?;
 
