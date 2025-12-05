@@ -1,20 +1,15 @@
 use axum::Json;
 use std::path::PathBuf;
 
-use crate::core::decryption::decrypt;
-use crate::utils::{AppError, Result};
+use crate::core::decryption::decrypt_db;
+use crate::utils::{AppError, Result, validation};
 use super::models::*;
 
 pub async fn decrypt_db_handler(Json(req): Json<DecryptRequest>) -> Result<Json<DecryptResponse>> {
+    validation::validate_db_path(&req.db_path)?;
+    validation::validate_key(&req.key)?;
+    
     let db_path = PathBuf::from(&req.db_path);
-    if !db_path.exists() {
-        return Ok(Json(DecryptResponse {
-            success: false,
-            message: format!("Database file not found: {}", req.db_path),
-            decrypted_path: None,
-        }));
-    }
-
     let output_path = req.output_path.unwrap_or_else(|| {
         let mut path = db_path.clone();
         path.set_file_name(format!(
@@ -24,7 +19,7 @@ pub async fn decrypt_db_handler(Json(req): Json<DecryptRequest>) -> Result<Json<
         path.to_string_lossy().to_string()
     });
 
-    match decrypt(&req.db_path, &req.key, &output_path) {
+    match decrypt_db(&req.key, &db_path, &PathBuf::from(&output_path)) {
         Ok(_) => Ok(Json(DecryptResponse {
             success: true,
             message: format!("Database decrypted successfully to: {}", output_path),
