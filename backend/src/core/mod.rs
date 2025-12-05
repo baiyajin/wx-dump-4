@@ -1,5 +1,6 @@
 pub mod process;
 pub mod memory;
+pub mod memory_map;
 pub mod decryption;
 pub mod version;
 pub mod wx_info;

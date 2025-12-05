@@ -1,6 +1,7 @@
 use crate::core::{
     file_version::{get_file_version_info, get_process_exe_path},
     memory::MemoryManager,
+    memory_map::MemoryMap,
     process::ProcessManager,
     version,
 };
@@ -51,12 +52,23 @@ fn get_info_details(pid: u32, wx_offs: &HashMap<String, Vec<u32>>) -> Result<WeC
     let process = ProcessManager::open(pid)?;
     let memory = MemoryManager::new(process.handle);
 
-    // 获取版本信息
-    let version = get_wechat_version(pid)?;
+    // 先尝试从WeChatWin.dll获取真实版本
+    let mut version = get_wechat_version(pid)?;
+    
+    // 从内存映射中查找WeChatWin.dll并获取真实版本
+    if let Ok(Some(wechatwin_path)) = MemoryMap::get_wechatwin_path(pid) {
+        if let Ok(dll_version) = get_file_version_info(std::path::Path::new(&wechatwin_path)) {
+            version = dll_version;
+        }
+    }
+    
     let addr_len = version::detect_address_len(&version);
 
-    // 获取WeChatWin.dll基址
-    let wechat_base_address = get_wechat_base_address(&memory)?;
+    // 获取WeChatWin.dll基址（优先从内存映射获取）
+    let wechat_base_address = match MemoryMap::get_wechatwin_base_address(pid) {
+        Ok(addr) => addr,
+        Err(_) => get_wechat_base_address(&memory)?,
+    };
 
     let mut info = WeChatInfo {
         pid,
