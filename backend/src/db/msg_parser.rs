@@ -1,3 +1,5 @@
+use crate::db::bytes_extra::BytesExtraParser;
+use crate::db::lz4_utils::Lz4Utils;
 use crate::utils::Result;
 use regex::Regex;
 use serde_json::Value;
@@ -9,9 +11,7 @@ pub struct MessageParser;
 impl MessageParser {
     /// 解析图片消息的路径
     pub fn parse_image_path(bytes_extra: &[u8]) -> Option<String> {
-        // TODO: 实现BytesExtra解析
-        // 从BytesExtra中提取FileStorage路径
-        None
+        BytesExtraParser::extract_image_path(bytes_extra)
     }
 
     /// 解析语音消息
@@ -35,30 +35,43 @@ impl MessageParser {
 
     /// 解析视频消息
     pub fn parse_video_message(bytes_extra: &[u8]) -> Option<String> {
-        // TODO: 实现视频路径解析
-        None
+        BytesExtraParser::extract_video_path(bytes_extra)
     }
 
     /// 解析文件消息
     pub fn parse_file_message(bytes_extra: &[u8]) -> Option<String> {
-        // TODO: 实现文件路径解析
-        None
+        BytesExtraParser::extract_file_url(bytes_extra)
+            .or_else(|| BytesExtraParser::extract_file_storage_path(bytes_extra))
     }
 
     /// 解析分享消息（49类型）
     pub fn parse_share_message(compress_content: &[u8], content: &str) -> HashMap<String, Value> {
         let mut result = HashMap::new();
         
+        // 先尝试解压CompressContent
+        let decompressed = if !compress_content.is_empty() {
+            Lz4Utils::decompress_or_empty(compress_content)
+        } else {
+            String::new()
+        };
+        
+        // 优先使用解压后的内容
+        let xml_content = if !decompressed.is_empty() {
+            &decompressed
+        } else {
+            content
+        };
+        
         // 尝试从XML内容解析
-        if let Some(title) = Self::extract_xml_value(content, "title") {
+        if let Some(title) = Self::extract_xml_value(xml_content, "title") {
             result.insert("title".to_string(), Value::String(title));
         }
         
-        if let Some(des) = Self::extract_xml_value(content, "des") {
+        if let Some(des) = Self::extract_xml_value(xml_content, "des") {
             result.insert("des".to_string(), Value::String(des));
         }
         
-        if let Some(url) = Self::extract_xml_value(content, "url") {
+        if let Some(url) = Self::extract_xml_value(xml_content, "url") {
             result.insert("url".to_string(), Value::String(url));
         }
         
@@ -102,8 +115,8 @@ impl MessageParser {
             return Some(cdnurl);
         }
         
-        // TODO: 从BytesExtra中解析
-        None
+        // 从BytesExtra中提取URL
+        BytesExtraParser::extract_file_url(bytes_extra)
     }
 }
 

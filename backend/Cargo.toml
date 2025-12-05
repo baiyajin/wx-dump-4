@@ -44,6 +44,9 @@ thiserror = "1.0"
 regex = "1.10"
 winreg = "0.52"
 chrono = { version = "0.4", features = ["serde"] }
+lz4 = "1.24"
+prost = "0.12"
+prost-types = "0.12"
 
 # 日志
 tracing = "0.1"
