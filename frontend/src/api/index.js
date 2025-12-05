@@ -10,3 +10,10 @@ export const wxApi = {
   decryptDb: (data) => api.post('/wx/decrypt', data),
 }
 
+export const chatApi = {
+  getContacts: (data) => api.post('/chat/contacts', data),
+  getContactDetail: (wxid, data) => api.get(`/chat/contacts/${wxid}`, { data }),
+  getMsgCount: (data) => api.post('/chat/msg/count', data),
+  getMsgList: (data) => api.post('/chat/msg/list', data),
+}
+
