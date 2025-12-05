@@ -3,6 +3,7 @@ import Home from '../views/Home.vue'
 import Chat from '../views/Chat.vue'
 import Export from '../views/Export.vue'
 import Statistics from '../views/Statistics.vue'
+import Tools from '../views/Tools.vue'
 import Settings from '../views/Settings.vue'
 
 const routes = [
@@ -25,6 +26,11 @@ const routes = [
     path: '/statistics',
     name: 'Statistics',
     component: Statistics,
+  },
+  {
+    path: '/tools',
+    name: 'Tools',
+    component: Tools,
   },
   {
     path: '/settings',
