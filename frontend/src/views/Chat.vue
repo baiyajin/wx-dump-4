@@ -40,26 +40,19 @@
         </div>
 
         <div class="messages-container" ref="messagesContainer">
-          <div
+          <MessageItem
             v-for="message in messages"
             :key="message.id"
-            class="message-item"
-            :class="{ 'message-sent': message.is_sender === 1 }"
-          >
-            <div class="message-header">
-              <span class="message-sender">
-                {{ message.is_sender === 1 ? '我' : message.talker }}
-              </span>
-              <span class="message-time">{{ message.create_time_str }}</span>
-            </div>
-            <div class="message-content">
-              <div class="message-type">{{ message.type_name }}</div>
-              <div class="message-text">{{ message.content }}</div>
-              <div v-if="message.src" class="message-src">
-                <a :href="message.src" target="_blank">{{ message.src }}</a>
-              </div>
-            </div>
-          </div>
+            :msg-type="message.msg_type"
+            :sub-type="message.sub_type"
+            :type-name="message.type_name"
+            :content="message.content"
+            :src="message.src"
+            :extra="message.extra"
+            :is-sender="message.is_sender"
+            :sender-name="message.is_sender === 1 ? '我' : (userList[message.talker]?.nickname || message.talker)"
+            :create-time-str="message.create_time_str"
+          />
         </div>
 
         <div v-if="loading" class="loading">加载中...</div>
@@ -74,11 +67,13 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
 import { chatApi } from '../api/index.js'
+import MessageItem from '../components/message/MessageItem.vue'
 
 const searchKeyword = ref('')
 const contacts = ref([])
 const selectedContact = ref(null)
 const messages = ref([])
+const userList = ref({})
 const loading = ref(false)
 const hasMore = ref(true)
 const currentPage = ref(0)
@@ -129,6 +124,9 @@ const loadMessages = async () => {
       hasMore.value = false
     } else {
       messages.value = [...response.data.messages, ...messages.value]
+      if (response.data.user_list) {
+        userList.value = { ...userList.value, ...response.data.user_list }
+      }
       currentPage.value++
     }
   } catch (error) {
@@ -263,44 +261,6 @@ onMounted(() => {
   padding: 16px;
 }
 
-.message-item {
-  margin-bottom: 16px;
-  padding: 12px;
-  background: #f5f5f5;
-  border-radius: 8px;
-}
-
-.message-item.message-sent {
-  background: #e3f2fd;
-  margin-left: auto;
-  max-width: 70%;
-}
-
-.message-header {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 8px;
-  font-size: 12px;
-}
-
-.message-sender {
-  font-weight: bold;
-  color: #2196f3;
-}
-
-.message-time {
-  color: #999;
-}
-
-.message-content {
-  line-height: 1.6;
-}
-
-.message-type {
-  font-size: 12px;
-  color: #666;
-  margin-bottom: 4px;
-}
 
 .loading,
 .load-more {
