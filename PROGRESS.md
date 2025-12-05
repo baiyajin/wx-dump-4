@@ -2,9 +2,9 @@
 
 ## 📊 总体进度
 
-- **总体完成度**: ~15%
-- **后端完成度**: ~20%
-- **前端完成度**: ~10%
+- **总体完成度**: ~60%
+- **后端完成度**: ~55%
+- **前端完成度**: ~40%
 
 ---
 
@@ -92,6 +92,34 @@
   - [x] 微信信息展示
   - [x] 获取微信信息按钮
   - [x] 多进程信息展示
+
+- [x] **聊天记录页面** (`views/Chat.vue`)
+  - [x] 联系人列表组件
+  - [x] 联系人搜索功能
+  - [x] 消息列表展示
+  - [x] 消息加载（分页）
+
+- [x] **消息类型组件** (`components/message/`)
+  - [x] MessageText - 文本消息
+  - [x] MessageImg - 图片消息
+  - [x] MessageVideo - 视频消息
+  - [x] MessageAudio - 语音消息
+  - [x] MessageFile - 文件消息
+  - [x] MessageEmoji - 表情消息
+  - [x] MessageOther - 其他类型消息
+  - [x] MessageItem - 消息项组件
+
+- [x] **数据导出页面** (`views/Export.vue`)
+  - [x] 导出格式选择（CSV、JSON、HTML）
+  - [x] 导出参数配置
+  - [x] 导出进度显示
+  - [x] 导出结果展示
+
+- [x] **统计分析页面** (`views/Statistics.vue`)
+  - [x] 联系人统计
+  - [x] 日期统计
+  - [x] 聊天热力图
+  - [x] 聊天最多的联系人
 
 - [x] **API 封装**
   - [x] Axios 配置
