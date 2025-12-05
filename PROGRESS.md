@@ -2,9 +2,9 @@
 
 ## 📊 总体进度
 
-- **总体完成度**: ~75%
-- **后端完成度**: ~65%
-- **前端完成度**: ~60%
+- **总体完成度**: ~85%
+- **后端完成度**: ~80%
+- **前端完成度**: ~75%
 
 ---
 
@@ -43,6 +43,12 @@
 - [x] **文件版本读取** (`core/file_version.rs`)
   - [x] 从文件读取版本信息
   - [x] 获取进程可执行文件路径
+  - [x] 从WeChatWin.dll读取真实版本
+
+- [x] **内存映射** (`core/memory_map.rs`)
+  - [x] 获取进程模块列表
+  - [x] 查找WeChatWin.dll模块
+  - [x] 获取WeChatWin.dll基址和路径
 
 #### 数据库模块 ✅
 - [x] **数据库基础** (`db/dbbase.rs`)
@@ -64,6 +70,16 @@
   - [x] 获取联系人详情
   - [x] 联系人搜索
 
+- [x] **收藏数据库** (`db/favorite.rs`)
+  - [x] Favorite.db 读取
+  - [x] 获取收藏列表
+  - [x] 获取收藏数量
+
+- [x] **朋友圈数据库** (`db/sns.rs`)
+  - [x] Sns.db 读取
+  - [x] 获取朋友圈列表
+  - [x] 获取朋友圈数量
+
 #### API 接口 ✅
 - [x] **微信信息API** (`api/wx_info.rs`)
   - [x] `POST /api/wx/info` - 获取微信信息
@@ -76,6 +92,14 @@
   - [x] `GET /api/chat/contacts/:wxid` - 获取联系人详情
   - [x] `POST /api/chat/msg/count` - 获取消息数量
   - [x] `POST /api/chat/msg/list` - 获取消息列表
+
+- [x] **收藏API** (`api/favorite.rs`)
+  - [x] `POST /api/favorite/list` - 获取收藏列表
+  - [x] `POST /api/favorite/count` - 获取收藏数量
+
+- [x] **朋友圈API** (`api/moments.rs`)
+  - [x] `POST /api/moments/list` - 获取朋友圈列表
+  - [x] `POST /api/moments/count` - 获取朋友圈数量
 
 - [x] **健康检查**
   - [x] `GET /health` - 健康检查
@@ -125,6 +149,16 @@
   - [x] Axios 配置
   - [x] 基础 API 封装
   - [x] 聊天记录 API 封装
+  - [x] 收藏 API 封装
+  - [x] 朋友圈 API 封装
+  - [x] 统计分析 API 封装
+  - [x] 导出 API 封装
+
+- [x] **其他页面**
+  - [x] 联系人页面（Contacts.vue）
+  - [x] 收藏页面（Favorite.vue）
+  - [x] 朋友圈页面（Moments.vue）
+  - [x] 清理工具页面（Cleanup.vue）
 
 ### 其他 ✅
 - [x] Git SSH 配置
@@ -137,15 +171,15 @@
 ## 🔄 进行中功能
 
 ### 后端
-- [ ] **消息内容解析增强**
-  - [ ] XML 解析（分享、位置等）
-  - [ ] Protobuf 解析
-  - [ ] LZ4 压缩内容解压
-  - [ ] BytesExtra 解析（图片、视频路径等）
+- [x] **消息内容解析增强**
+  - [x] XML 解析（分享、位置等）
+  - [x] LZ4 压缩内容解压
+  - [x] BytesExtra 解析（图片、视频路径等）
+  - [ ] Protobuf 完整解析（部分完成）
 
-- [ ] **媒体数据库** (`db/media.rs`)
-  - [ ] Media.db 读取
-  - [ ] 媒体文件路径解析
+- [x] **媒体数据库** (`db/media.rs`)
+  - [x] Media.db 读取
+  - [x] 媒体文件路径解析
 
 ### 前端
 - [ ] **聊天记录页面** (`views/Chat.vue`)
@@ -158,17 +192,17 @@
 ## ⏳ 待开始功能
 
 ### 后端
-- [ ] 其他数据库（Favorite、Sns、PublicMsg等）
-- [ ] 数据库合并功能
-- [ ] 导出API（CSV、JSON、HTML）
-- [ ] 统计分析API
-- [ ] 媒体文件API
+- [ ] 性能优化（数据库查询优化、缓存机制）
+- [ ] 错误处理增强（更详细的错误信息）
+- [ ] 单元测试和集成测试
+- [ ] API文档生成
+- [ ] 日志系统完善
 
 ### 前端
-- [ ] 消息类型组件（图片、视频、语音等）
-- [ ] 统计分析页面
-- [ ] 数据导出页面
-- [ ] 其他页面（联系人、收藏、朋友圈等）
+- [ ] 性能优化（虚拟滚动、懒加载）
+- [ ] 用户体验优化（加载动画、错误提示）
+- [ ] 响应式设计完善
+- [ ] 国际化支持
 
 ---
 
