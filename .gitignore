@@ -1,0 +1,26 @@
+# Rust
+backend/target/
+backend/Cargo.lock
+backend/**/*.rs.bk
+backend/config/wx_offs.json
+
+# Node
+frontend/node_modules/
+frontend/dist/
+frontend/dist-ssr/
+frontend/*.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+

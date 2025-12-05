@@ -1,0 +1,58 @@
+[package]
+name = "wx-dump-4-backend"
+version = "0.1.0"
+edition = "2021"
+authors = ["baiyajin"]
+description = "WeChat dump backend service with Rust"
+license = "MIT"
+
+[dependencies]
+# Web框架
+axum = { version = "0.7", features = ["macros", "multipart", "ws"] }
+tokio = { version = "1", features = ["full"] }
+tower = "0.4"
+tower-http = { version = "0.5", features = ["cors", "fs"] }
+
+# 序列化
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+# Windows API
+windows = { version = "0.52", features = [
+    "Win32_System_Diagnostics_ToolHelp",
+    "Win32_System_Threading",
+    "Win32_Foundation",
+    "Win32_System_Memory",
+    "Win32_System_ProcessStatus",
+    "Win32_System_Registry",
+] }
+
+# 数据库
+rusqlite = { version = "0.30", features = ["bundled", "backup", "blob"] }
+
+# 加密解密
+aes = "0.8"
+cbc = "0.1"
+sha1 = "0.10"
+pbkdf2 = "0.12"
+hmac = "0.12"
+hex = "0.4"
+
+# 工具库
+anyhow = "1.0"
+thiserror = "1.0"
+regex = "1.10"
+winreg = "0.52"
+
+# 日志
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+
+# 文件处理
+walkdir = "2.4"
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
+
