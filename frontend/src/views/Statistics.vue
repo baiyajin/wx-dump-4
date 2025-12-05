@@ -107,6 +107,7 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
+import { statisticsApi } from '../api/index.js'
 
 const mergePath = ref('')
 const wxid = ref('')
@@ -133,53 +134,33 @@ const loadStatistics = async () => {
   try {
     // 加载联系人统计
     if (wxid.value) {
-      const contactResponse = await fetch('/api/stat/contact/' + wxid.value, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          merge_path: mergePath.value,
-          wxid: wxid.value
-        })
+      const contactResponse = await statisticsApi.getContactStat(wxid.value, {
+        merge_path: mergePath.value,
+        wxid: wxid.value
       })
-      const contactData = await contactResponse.json()
-      contactStat.value = contactData.data
+      contactStat.value = contactResponse.data
     }
 
     // 加载日期统计
-    const dateResponse = await fetch('/api/stat/date/chat', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        merge_path: mergePath.value,
-        wxid: wxid.value || null
-      })
+    const dateResponse = await statisticsApi.getDateChatStat({
+      merge_path: mergePath.value,
+      wxid: wxid.value || null
     })
-    const dateData = await dateResponse.json()
-    dateStats.value = dateData.data?.stats || {}
+    dateStats.value = dateResponse.data?.stats || {}
 
     // 加载热力图数据
-    const heatmapResponse = await fetch('/api/stat/date/heatmap', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        merge_path: mergePath.value,
-        wxid: wxid.value || null
-      })
+    const heatmapResponse = await statisticsApi.getDateHeatmap({
+      merge_path: mergePath.value,
+      wxid: wxid.value || null
     })
-    const heatmapResult = await heatmapResponse.json()
-    heatmapData.value = heatmapResult.data?.data || []
+    heatmapData.value = heatmapResponse.data?.data || []
 
     // 加载聊天最多的联系人
-    const talkersResponse = await fetch('/api/stat/top/talkers', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        merge_path: mergePath.value,
-        top: 10
-      })
+    const talkersResponse = await statisticsApi.getTopTalkers({
+      merge_path: mergePath.value,
+      top: 10
     })
-    const talkersResult = await talkersResponse.json()
-    topTalkers.value = talkersResult.data?.talkers || {}
+    topTalkers.value = talkersResponse.data?.talkers || {}
 
     statData.value = true
   } catch (error) {

@@ -110,7 +110,7 @@
 
 <script setup>
 import { ref, computed } from 'vue'
-import { chatApi } from '../api/index.js'
+import { exportApi } from '../api/index.js'
 
 const mergePath = ref('')
 const wxid = ref('')
@@ -154,32 +154,22 @@ const startExport = async () => {
     progressMessage.value = '正在导出...'
     progress.value = 50
 
-    let response
+    let result
     if (selectedFormat.value === 'csv') {
-      response = await fetch('/api/export/csv', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(requestData)
-      })
+      const response = await exportApi.exportCsv(requestData)
+      result = response.data
     } else if (selectedFormat.value === 'json') {
-      response = await fetch('/api/export/json', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(requestData)
-      })
+      const response = await exportApi.exportJson(requestData)
+      result = response.data
     } else {
-      response = await fetch('/api/export/html', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(requestData)
-      })
+      const response = await exportApi.exportHtml(requestData)
+      result = response.data
     }
 
     progress.value = 100
     progressMessage.value = '导出完成'
 
-    const result = await response.json()
-    exportResult.value = result.data || result
+    exportResult.value = result
 
     if (exportResult.value.success) {
       progressMessage.value = '导出成功'

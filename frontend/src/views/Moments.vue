@@ -31,15 +31,47 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
+import { momentsApi } from '../api/index.js'
 
 const moments = ref([])
 const loading = ref(false)
 const error = ref(null)
 const mergePath = ref('')
+const total = ref(0)
+const currentPage = ref(0)
+const pageSize = 50
+
+const loadMoments = async () => {
+  if (!mergePath.value) {
+    error.value = '请先在设置中配置数据库路径'
+    return
+  }
+
+  loading.value = true
+  error.value = null
+
+  try {
+    const response = await momentsApi.getMomentsList({
+      merge_path: mergePath.value,
+      start: currentPage.value * pageSize,
+      limit: pageSize
+    })
+    
+    moments.value = response.data.moments
+    total.value = response.data.total
+  } catch (err) {
+    error.value = '加载朋友圈失败: ' + err.message
+    console.error('Error loading moments:', err)
+  } finally {
+    loading.value = false
+  }
+}
 
 onMounted(() => {
   mergePath.value = localStorage.getItem('merge_path') || ''
-  // TODO: 实现朋友圈数据加载
+  if (mergePath.value) {
+    loadMoments()
+  }
 })
 </script>
 

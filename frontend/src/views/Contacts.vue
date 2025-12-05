@@ -49,6 +49,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { chatApi } from '../api/index.js'
+import { chatApi as contactApi } from '../api/index.js'
 
 const searchKeyword = ref('')
 const filterType = ref('all')
