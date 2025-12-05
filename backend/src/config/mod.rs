@@ -48,6 +48,15 @@ pub fn save_wx_offs(offs: &HashMap<String, Vec<u32>>) -> Result<()> {
 }
 
 fn get_config_path() -> Result<PathBuf> {
+    // 优先使用项目目录下的配置文件
+    if let Ok(mut path) = std::env::current_dir() {
+        let project_config = path.join("backend").join("config").join("wx_offs.json");
+        if project_config.exists() {
+            return Ok(project_config);
+        }
+    }
+    
+    // 否则使用可执行文件目录
     let mut path = std::env::current_exe()?;
     path.pop(); // 移除可执行文件名
     path.push("config");

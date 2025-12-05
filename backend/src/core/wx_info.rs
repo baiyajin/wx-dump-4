@@ -1,4 +1,9 @@
-use crate::core::{memory::MemoryManager, process::ProcessManager, version};
+use crate::core::{
+    file_version::{get_file_version_info, get_process_exe_path},
+    memory::MemoryManager,
+    process::ProcessManager,
+    version,
+};
 use crate::utils::Result;
 use anyhow::Context;
 use serde::{Deserialize, Serialize};
@@ -186,9 +191,16 @@ fn get_wechat_base_address(memory: &MemoryManager) -> Result<usize> {
 }
 
 fn get_wechat_version(pid: u32) -> Result<String> {
-    // 简化版本：从进程路径获取版本
-    // 实际应该从文件版本信息读取
-    Ok("3.9.12.55".to_string()) // 临时返回，需要实现文件版本读取
+    // 从进程路径获取版本信息
+    let exe_path = get_process_exe_path(pid)?;
+    let path = PathBuf::from(&exe_path);
+    
+    if path.exists() {
+        get_file_version_info(&path)
+    } else {
+        // 如果文件不存在，尝试从内存映射中获取
+        Err(anyhow::anyhow!("Cannot get WeChat version: file not found").into())
+    }
 }
 
 fn get_wx_dir_by_reg(wxid: &str) -> Option<String> {
