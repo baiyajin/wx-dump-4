@@ -5,6 +5,7 @@ mod wx_info;
 mod decrypt;
 mod chat;
 mod statistics;
+mod media;
 
 pub fn create_router(wx_offs: HashMap<String, Vec<u32>>) -> Router {
     Router::new()
@@ -12,6 +13,7 @@ pub fn create_router(wx_offs: HashMap<String, Vec<u32>>) -> Router {
         .merge(decrypt::router())
         .merge(chat::router())
         .merge(statistics::router())
+        .merge(media::router())
         .route("/health", axum::routing::get(health_check))
 }
 
