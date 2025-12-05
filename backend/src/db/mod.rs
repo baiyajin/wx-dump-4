@@ -1,3 +1,9 @@
-// 数据库相关模块
-// 后续实现聊天记录读取等功能
+pub mod dbbase;
+pub mod msg;
+pub mod contact;
+pub mod utils;
+
+pub use dbbase::DatabaseBase;
+pub use msg::MsgHandler;
+pub use contact::{ContactHandler, Contact};
 

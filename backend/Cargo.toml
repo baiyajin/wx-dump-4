@@ -43,6 +43,7 @@ anyhow = "1.0"
 thiserror = "1.0"
 regex = "1.10"
 winreg = "0.52"
+chrono = { version = "0.4", features = ["serde"] }
 
 # 日志
 tracing = "0.1"
