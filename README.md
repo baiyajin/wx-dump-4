@@ -1,5 +1,9 @@
 # wx-dump-4
 
+<div align="center">
+  <img src="logo.png" alt="wx-dump-4 Logo" width="200">
+</div>
+
 基于 Rust + Vue 3 的微信数据导出工具，支持微信 4.0+ 版本。
 
 ## 技术栈
@@ -71,7 +75,29 @@ npm run dev
 - 仅支持 Windows 系统
 - 仅供学习交流使用
 
-## License
+## 许可证
 
-MIT
+本项目采用MIT许可证。
+
+## 贡献
+
+欢迎提交Issue和Pull Request！
+
+## 支持项目
+
+如果这个项目对你有帮助，欢迎通过微信赞赏支持开发者继续改进项目！
+
+<div align="center">
+  <img src="wechat_reward.jpg" alt="微信赞赏码" width="300">
+  <p><em>你的鼓励是我改BUG的动力 💪</em></p>
+</div>
+
+## 技术支持
+
+遇到问题需要帮助？欢迎加入付费技术支持咨询交流QQ群，与开发者和其他用户交流！
+
+<div align="center">
+  <img src="qq_group.jpg" alt="付费技术支持咨询交流QQ群" width="300">
+  <p><em>扫码加入QQ群，获取技术支持 💬</em></p>
+</div>
 
