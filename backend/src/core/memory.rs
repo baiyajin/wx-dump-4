@@ -1,13 +1,12 @@
 use crate::utils::Result;
 use anyhow::Context;
-use std::ffi::CString;
 use windows::{
     Win32::{
         Foundation::HANDLE,
         System::{
             Memory::{
                 MEMORY_BASIC_INFORMATION, MEM_COMMIT, PAGE_EXECUTE, PAGE_EXECUTE_READ,
-                PAGE_EXECUTE_READWRITE, PAGE_READONLY, PAGE_READWRITE,
+                PAGE_EXECUTE_READWRITE, PAGE_READONLY, PAGE_READWRITE, VirtualQueryEx,
             },
             ProcessStatus::GetMappedFileNameW,
             Threading::ReadProcessMemory,
@@ -129,7 +128,7 @@ impl MemoryManager {
         let mut mbi = MEMORY_BASIC_INFORMATION::default();
         
         unsafe {
-            windows::Win32::System::Memory::VirtualQueryEx(
+            VirtualQueryEx(
                 self.handle,
                 Some(address as *const _),
                 &mut mbi,

@@ -1,8 +1,7 @@
 use crate::utils::Result;
 use anyhow::Context;
-use std::ffi::CString;
+use std::ffi::CStr;
 use windows::{
-    core::PCSTR,
     Win32::{
         Foundation::{CloseHandle, HANDLE, INVALID_HANDLE_VALUE},
         System::{
@@ -50,7 +49,7 @@ impl ProcessManager {
         unsafe {
             if Process32First(snapshot, &mut pe32).as_bool() {
                 loop {
-                    let exe_name = CString::from_raw(pe32.szExeFile.as_ptr() as *mut i8);
+                    let exe_name = CStr::from_ptr(pe32.szExeFile.as_ptr() as *const i8);
                     let exe_name_str = exe_name.to_string_lossy();
 
                     if exe_name_str == name {
