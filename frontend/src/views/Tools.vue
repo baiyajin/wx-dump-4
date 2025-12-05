@@ -120,7 +120,7 @@
 
 <script setup>
 import { ref } from 'vue'
-import { wxApi } from '../api/index.js'
+import { wxApi, mergeApi } from '../api/index.js'
 
 const decryptDbPath = ref('')
 const decryptKey = ref('')
@@ -180,25 +180,20 @@ const mergeDatabases = async () => {
       .map(p => p.trim())
       .filter(p => p)
 
-    const response = await fetch('/api/db/merge', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        source_paths: sourcePaths,
-        output_path: mergeOutputPath.value,
-        remove_duplicates: removeDuplicates.value
-      })
+    const response = await mergeApi.mergeDatabases({
+      db_paths: sourcePaths,
+      output_path: mergeOutputPath.value,
+      remove_duplicates: removeDuplicates.value
     })
 
-    const result = await response.json()
-
-    if (result.data?.success) {
-      mergeResult.value = `合并成功: ${result.data.message}，共合并 ${result.data.total_inserted || 0} 条消息`
+    if (response.data.success) {
+      mergeResult.value = `合并成功: ${response.data.message}，共合并 ${response.data.total_inserted || 0} 条消息`
     } else {
-      mergeResult.value = `合并失败: ${result.data?.message || result.message}`
+      mergeResult.value = `合并失败: ${response.data.message}`
     }
   } catch (error) {
     mergeResult.value = `合并失败: ${error.message}`
+    console.error('Error merging databases:', error)
   } finally {
     merging.value = false
   }
