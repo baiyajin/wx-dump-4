@@ -2,6 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import Home from '../views/Home.vue'
 import Chat from '../views/Chat.vue'
 import Export from '../views/Export.vue'
+import Statistics from '../views/Statistics.vue'
 import Settings from '../views/Settings.vue'
 
 const routes = [
@@ -19,6 +20,11 @@ const routes = [
     path: '/export',
     name: 'Export',
     component: Export,
+  },
+  {
+    path: '/statistics',
+    name: 'Statistics',
+    component: Statistics,
   },
   {
     path: '/settings',
