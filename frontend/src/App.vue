@@ -9,6 +9,8 @@
           <div class="flex items-center space-x-4">
             <router-link to="/" class="text-gray-600 hover:text-gray-900">首页</router-link>
             <router-link to="/chat" class="text-gray-600 hover:text-gray-900">聊天记录</router-link>
+            <router-link to="/statistics" class="text-gray-600 hover:text-gray-900">统计分析</router-link>
+            <router-link to="/export" class="text-gray-600 hover:text-gray-900">数据导出</router-link>
             <router-link to="/settings" class="text-gray-600 hover:text-gray-900">设置</router-link>
           </div>
         </div>
