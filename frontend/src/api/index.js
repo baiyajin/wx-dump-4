@@ -40,3 +40,13 @@ export const exportApi = {
   exportHtml: (data) => api.post('/export/html', data),
 }
 
+export const cleanupApi = {
+  analyzeStorage: (data) => api.post('/cleanup/analyze', data),
+  optimizeDatabase: (data) => api.post('/cleanup/optimize', data),
+  vacuumDatabase: (data) => api.post('/cleanup/vacuum', data),
+}
+
+export const mergeApi = {
+  mergeDatabases: (data) => api.post('/merge/databases', data),
+}
+
