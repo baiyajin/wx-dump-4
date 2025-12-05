@@ -4,6 +4,7 @@ pub mod msg_query;
 pub mod msg_list;
 pub mod contact;
 pub mod media;
+pub mod merge;
 pub mod msg_parser;
 pub mod bytes_extra;
 pub mod lz4_utils;
