@@ -16,3 +16,10 @@ pub struct ExportResponse {
     pub file_path: Option<String>,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ExportDbRequest {
+    pub db_path: String,
+    pub key: String,
+    pub output_path: Option<String>,
+}
+
