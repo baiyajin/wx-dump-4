@@ -53,6 +53,7 @@ tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 
 # 文件处理
 walkdir = "2.4"
+mime_guess = "2.0"
 
 [profile.release]
 opt-level = 3
