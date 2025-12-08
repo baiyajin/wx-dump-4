@@ -65,10 +65,41 @@ const updateTheme = () => {
 
 onMounted(() => {
   const saved = localStorage.getItem('darkMode')
+  const savedTheme = localStorage.getItem('theme')
+  
   if (saved === 'true') {
     isDarkMode.value = true
+  } else if (savedTheme === 'dark') {
+    isDarkMode.value = true
+  } else if (savedTheme === 'auto') {
+    // 跟随系统
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
+    isDarkMode.value = prefersDark
   }
+  
   updateTheme()
+  
+  // 监听主题变化事件
+  window.addEventListener('theme-change', (event) => {
+    const newTheme = event.detail?.theme
+    if (newTheme === 'dark') {
+      isDarkMode.value = true
+    } else if (newTheme === 'light') {
+      isDarkMode.value = false
+    } else if (newTheme === 'auto') {
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
+      isDarkMode.value = prefersDark
+    }
+    updateTheme()
+  })
+  
+  // 监听系统主题变化
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+    if (localStorage.getItem('theme') === 'auto') {
+      isDarkMode.value = e.matches
+      updateTheme()
+    }
+  })
 })
 </script>
 

@@ -47,6 +47,21 @@
           />
           <button @click="savePageSize" class="save-button">保存</button>
         </div>
+        <div class="setting-item">
+          <label class="setting-label">主题</label>
+          <select v-model="theme" @change="saveTheme" class="setting-input">
+            <option value="light">浅色</option>
+            <option value="dark">深色</option>
+            <option value="auto">跟随系统</option>
+          </select>
+        </div>
+        <div class="setting-item">
+          <label class="setting-label">语言</label>
+          <select v-model="language" @change="saveLanguage" class="setting-input">
+            <option value="zh-CN">简体中文</option>
+            <option value="en-US">English</option>
+          </select>
+        </div>
       </div>
 
       <!-- 操作 -->
@@ -67,6 +82,8 @@ import { ref, onMounted } from 'vue'
 const mergePath = ref('')
 const exportPath = ref('')
 const pageSize = ref(50)
+const theme = ref('light')
+const language = ref('zh-CN')
 
 const saveMergePath = () => {
   localStorage.setItem('merge_path', mergePath.value)
@@ -91,12 +108,35 @@ const clearCache = () => {
   }
 }
 
+const saveTheme = () => {
+  localStorage.setItem('darkMode', theme.value === 'dark' ? 'true' : 'false')
+  localStorage.setItem('theme', theme.value)
+  
+  // 触发主题更新
+  const event = new CustomEvent('theme-change', { detail: { theme: theme.value } })
+  window.dispatchEvent(event)
+  
+  alert('主题设置已保存')
+}
+
+const saveLanguage = () => {
+  localStorage.setItem('language', language.value)
+  alert('语言设置已保存，刷新页面后生效')
+}
+
 const resetSettings = () => {
   if (confirm('确定要重置所有设置吗？')) {
     localStorage.clear()
     mergePath.value = ''
     exportPath.value = ''
     pageSize.value = 50
+    theme.value = 'light'
+    language.value = 'zh-CN'
+    
+    // 触发主题更新
+    const event = new CustomEvent('theme-change', { detail: { theme: 'light' } })
+    window.dispatchEvent(event)
+    
     alert('设置已重置')
   }
 }
@@ -108,6 +148,18 @@ onMounted(() => {
   if (savedPageSize) {
     pageSize.value = parseInt(savedPageSize, 10)
   }
+  
+  // 加载主题设置
+  const savedTheme = localStorage.getItem('theme') || 'light'
+  const savedDarkMode = localStorage.getItem('darkMode')
+  if (savedDarkMode === 'true') {
+    theme.value = 'dark'
+  } else if (savedTheme) {
+    theme.value = savedTheme
+  }
+  
+  // 加载语言设置
+  language.value = localStorage.getItem('language') || 'zh-CN'
 })
 </script>
 
