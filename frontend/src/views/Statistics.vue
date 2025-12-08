@@ -56,18 +56,8 @@
         </div>
 
         <!-- 日期统计 -->
-        <div v-if="dateStats && Object.keys(dateStats).length > 0" class="stat-card">
-          <h3 class="stat-title">日期统计</h3>
-          <div class="date-stats-list">
-            <div
-              v-for="(stat, date) in dateStats"
-              :key="date"
-              class="date-stat-item"
-            >
-              <span class="date-label">{{ date }}</span>
-              <span class="date-value">{{ stat.total_count }} 条</span>
-            </div>
-          </div>
+        <div v-if="dateStats && Object.keys(dateStats).length > 0" class="stat-card stat-card-chart">
+          <DateChart :data="dateStats" />
         </div>
 
         <!-- 热力图数据 -->
@@ -87,18 +77,8 @@
         </div>
 
         <!-- 聊天最多的联系人 -->
-        <div v-if="topTalkers && Object.keys(topTalkers).length > 0" class="stat-card">
-          <h3 class="stat-title">聊天最多的联系人</h3>
-          <div class="talkers-list">
-            <div
-              v-for="(stat, wxid) in topTalkers"
-              :key="wxid"
-              class="talker-item"
-            >
-              <span class="talker-wxid">{{ wxid }}</span>
-              <span class="talker-count">{{ stat.total_count }} 条</span>
-            </div>
-          </div>
+        <div v-if="topTalkers && Object.keys(topTalkers).length > 0" class="stat-card stat-card-chart">
+          <TopTalkersChart :data="topTalkers" />
         </div>
       </div>
     </div>
@@ -108,6 +88,8 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { statisticsApi } from '../api/index.js'
+import DateChart from '../components/charts/DateChart.vue'
+import TopTalkersChart from '../components/charts/TopTalkersChart.vue'
 
 const mergePath = ref('')
 const wxid = ref('')
@@ -250,6 +232,10 @@ onMounted(() => {
   border-radius: 8px;
   padding: 24px;
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.stat-card-chart {
+  grid-column: 1 / -1;
 }
 
 .stat-title {

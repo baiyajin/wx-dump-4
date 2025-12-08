@@ -1,6 +1,7 @@
 use crate::db::dbbase::DatabaseBase;
-use crate::utils::Result;
+use crate::utils::{Result, cache::CacheManager};
 use std::collections::HashMap;
+use std::sync::Arc;
 
 /// 消息查询相关功能
 pub struct MsgQuery {

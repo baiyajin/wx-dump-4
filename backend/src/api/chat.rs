@@ -11,5 +11,6 @@ pub fn router() -> Router {
         .route("/api/chat/contacts/:wxid", get(get_contact_detail))
         .route("/api/chat/msg/count", post(get_msg_count))
         .route("/api/chat/msg/list", post(get_msg_list))
+        .route("/api/chat/msg/search", post(search_messages))
 }
 
