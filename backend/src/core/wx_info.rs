@@ -48,7 +48,7 @@ pub fn get_wx_info(wx_offs: &HashMap<String, Vec<u32>>) -> Result<Vec<WeChatInfo
     Ok(results)
 }
 
-fn get_info_details(pid: u32, wx_offs: &HashMap<String, Vec<u32>>) -> Result<WeChatInfo> {
+pub fn get_info_details(pid: u32, wx_offs: &HashMap<String, Vec<u32>>) -> Result<WeChatInfo> {
     let process = ProcessManager::open(pid)?;
     let memory = MemoryManager::new(process.handle);
 
