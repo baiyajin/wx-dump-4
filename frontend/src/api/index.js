@@ -15,6 +15,7 @@ export const chatApi = {
   getContactDetail: (wxid, data) => api.get(`/chat/contacts/${wxid}`, { data }),
   getMsgCount: (data) => api.post('/chat/msg/count', data),
   getMsgList: (data) => api.post('/chat/msg/list', data),
+  searchMessages: (data) => api.post('/chat/msg/search', data),
 }
 
 export const favoriteApi = {

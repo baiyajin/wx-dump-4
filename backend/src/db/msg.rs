@@ -67,6 +67,18 @@ impl MsgHandler {
         self.query.get_date_count(wxid, start_time, end_time)
     }
 
+    /// 搜索消息
+    pub fn search_messages(
+        &self,
+        wxid: Option<&str>,
+        keyword: &str,
+        start_time: Option<i64>,
+        end_time: Option<i64>,
+        limit: i64,
+    ) -> Result<Vec<crate::db::utils::Message>> {
+        self.list.search_messages(wxid, keyword, start_time, end_time, limit)
+    }
+
     /// 获取聊天最多的联系人
     pub fn get_top_talkers(
         &self,

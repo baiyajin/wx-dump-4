@@ -67,3 +67,20 @@ pub struct MessageResponse {
     pub extra: serde_json::Value,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MsgSearchRequest {
+    pub merge_path: String,
+    pub keyword: String,
+    pub wxid: Option<String>,
+    pub start_time: Option<i64>,
+    pub end_time: Option<i64>,
+    pub limit: Option<i64>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MsgSearchResponse {
+    pub messages: Vec<MessageResponse>,
+    pub total: i64,
+    pub keyword: String,
+}
+

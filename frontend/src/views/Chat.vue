@@ -32,14 +32,51 @@
       <!-- 聊天记录区域 -->
       <div class="chat-main">
         <div v-if="selectedContact" class="chat-header">
-          <h3>{{ selectedContact.wxid }}</h3>
-          <div class="msg-count">共 {{ selectedContact.msg_count }} 条消息</div>
+          <div class="header-info">
+            <h3>{{ selectedContact.wxid }}</h3>
+            <div class="msg-count">共 {{ selectedContact.msg_count }} 条消息</div>
+          </div>
+          <div class="header-actions">
+            <div class="search-box">
+              <input
+                v-model="searchKeyword"
+                type="text"
+                placeholder="搜索消息..."
+                class="search-input"
+                @keyup.enter="performSearch"
+                @input="onSearchInput"
+              />
+              <button v-if="searchKeyword" @click="clearSearch" class="clear-btn">×</button>
+              <button @click="performSearch" class="search-btn">搜索</button>
+            </div>
+          </div>
         </div>
         <div v-else class="chat-header">
           <h3>请选择联系人</h3>
         </div>
 
+        <!-- 搜索结果 -->
+        <div v-if="searchMode && searchResults.length > 0" class="search-results">
+          <div class="search-results-header">
+            <span>找到 {{ searchResults.length }} 条结果（关键词：{{ searchKeyword }}）</span>
+            <button @click="exitSearch" class="exit-search-btn">返回聊天</button>
+          </div>
+          <div class="search-results-list">
+            <div
+              v-for="message in searchResults"
+              :key="message.id"
+              class="search-result-item"
+              @click="jumpToMessage(message)"
+            >
+              <div class="result-time">{{ message.create_time_str }}</div>
+              <div class="result-content" v-html="highlightKeyword(message.content, searchKeyword)"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 正常消息列表 -->
         <div 
+          v-else
           class="messages-container" 
           ref="messagesContainer"
           @scroll="handleScroll"
@@ -56,7 +93,7 @@
               :msg-type="message.msg_type"
               :sub-type="message.sub_type"
               :type-name="message.type_name"
-              :content="message.content"
+              :content="highlightKeyword(message.content, currentSearchKeyword)"
               :src="message.src"
               :extra="message.extra"
               :is-sender="message.is_sender"
@@ -163,12 +200,91 @@ const loadMessages = async (scrollToBottom = false) => {
 }
 
 const handleScroll = () => {
-  if (!messagesContainer.value || !hasMore.value || loading.value) return
+  if (!messagesContainer.value || !hasMore.value || loading.value || searchMode.value) return
   
   // 当滚动到顶部附近时加载更多
   if (messagesContainer.value.scrollTop < 100) {
     loadMessages()
   }
+}
+
+const performSearch = async () => {
+  if (!selectedContact.value || !searchKeyword.value.trim()) {
+    return
+  }
+
+  searchMode.value = true
+  loading.value = true
+  currentSearchKeyword.value = searchKeyword.value
+
+  try {
+    const response = await chatApi.searchMessages({
+      merge_path: mergePath.value,
+      keyword: searchKeyword.value,
+      wxid: selectedContact.value.wxid,
+      limit: 100
+    })
+    
+    searchResults.value = response.data.messages
+  } catch (error) {
+    console.error('搜索消息失败:', error)
+    alert('搜索失败: ' + (error.response?.data?.error || error.message))
+  } finally {
+    loading.value = false
+  }
+}
+
+const clearSearch = () => {
+  searchKeyword.value = ''
+  currentSearchKeyword.value = ''
+  exitSearch()
+}
+
+const exitSearch = () => {
+  searchMode.value = false
+  searchResults.value = []
+  currentSearchKeyword.value = ''
+}
+
+const onSearchInput = () => {
+  if (!searchKeyword.value.trim()) {
+    exitSearch()
+  }
+}
+
+const highlightKeyword = (text, keyword) => {
+  if (!keyword || !text) return text
+  const regex = new RegExp(`(${keyword})`, 'gi')
+  return text.replace(regex, '<mark>$1</mark>')
+}
+
+const jumpToMessage = async (message) => {
+  // 退出搜索模式
+  exitSearch()
+  
+  // 重新加载消息并跳转到对应消息
+  messages.value = []
+  currentPage.value = 0
+  hasMore.value = true
+  
+  // 计算目标消息的页码
+  const targetPage = Math.floor(message.id / pageSize)
+  currentPage.value = targetPage
+  
+  await loadMessages(true)
+  
+  // 滚动到目标消息
+  setTimeout(() => {
+    if (messagesContainer.value) {
+      const targetIndex = messages.value.findIndex(m => m.msg_svr_id === message.msg_svr_id)
+      if (targetIndex >= 0) {
+        const targetElement = messagesContainer.value.children[targetIndex + 1] // +1 for loading div
+        if (targetElement) {
+          targetElement.scrollIntoView({ behavior: 'smooth', block: 'center' })
+        }
+      }
+    }
+  }, 300)
 }
 
 const loadMore = () => {

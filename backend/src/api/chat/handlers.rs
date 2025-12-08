@@ -149,3 +149,53 @@ pub async fn get_contact_detail(
     })))
 }
 
+pub async fn search_messages(Json(req): Json<super::models::MsgSearchRequest>) -> Result<Json<super::models::MsgSearchResponse>> {
+    validation::validate_db_path(&req.merge_path)?;
+    validation::validate_time_range(req.start_time, req.end_time)?;
+    
+    if req.keyword.trim().is_empty() {
+        return Err(AppError::BadRequest("搜索关键词不能为空".to_string()).into());
+    }
+    
+    let db_path = PathBuf::from(&req.merge_path);
+    let handler = MsgHandler::new(db_path.to_str().unwrap())?;
+    handler.add_indexes()?;
+
+    let limit = req.limit.unwrap_or(100);
+    let messages = handler.search_messages(
+        req.wxid.as_deref(),
+        &req.keyword,
+        req.start_time,
+        req.end_time,
+        limit,
+    )?;
+
+    let total = messages.len() as i64;
+
+    let msg_responses: Vec<super::models::MessageResponse> = messages.into_iter().map(|msg| {
+        super::models::MessageResponse {
+            id: msg.id,
+            local_id: msg.local_id,
+            msg_svr_id: msg.msg_svr_id,
+            msg_type: msg.msg_type,
+            sub_type: msg.sub_type,
+            type_name: msg.type_name,
+            create_time: msg.create_time,
+            create_time_str: msg.create_time_str,
+            is_sender: msg.is_sender,
+            talker: msg.talker,
+            str_talker: msg.str_talker,
+            content: msg.content,
+            display_content: msg.display_content,
+            src: msg.src,
+            extra: msg.extra,
+        }
+    }).collect();
+
+    Ok(Json(super::models::MsgSearchResponse {
+        messages: msg_responses,
+        total,
+        keyword: req.keyword,
+    }))
+}
+

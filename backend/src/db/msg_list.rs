@@ -217,5 +217,93 @@ impl MsgList {
             }
         }
     }
+
+    /// 搜索消息
+    pub fn search_messages(
+        &self,
+        wxid: Option<&str>,
+        keyword: &str,
+        start_time: Option<i64>,
+        end_time: Option<i64>,
+        limit: i64,
+    ) -> Result<Vec<Message>> {
+        if !self.db.table_exists("MSG") {
+            return Ok(Vec::new());
+        }
+
+        let mut sql = String::from(
+            "SELECT localId, MsgSvrID, Type, SubType, CreateTime, IsSender, 
+                    TalkerId, StrTalker, StrContent, DisplayContent, BytesExtra, CompressContent
+             FROM MSG WHERE (StrContent LIKE ? OR DisplayContent LIKE ?)"
+        );
+
+        let mut params: Vec<&dyn rusqlite::ToSql> = Vec::new();
+        let search_pattern = format!("%{}%", keyword);
+        params.push(&search_pattern);
+        params.push(&search_pattern);
+
+        if let Some(wxid) = wxid {
+            sql.push_str(" AND StrTalker = ?");
+            params.push(&wxid);
+        }
+
+        if let Some(start) = start_time {
+            sql.push_str(" AND CreateTime >= ?");
+            params.push(&start);
+        }
+
+        if let Some(end) = end_time {
+            sql.push_str(" AND CreateTime <= ?");
+            params.push(&end);
+        }
+
+        sql.push_str(" ORDER BY CreateTime DESC LIMIT ?");
+        params.push(&limit);
+
+        let messages = self.db.execute_query(&sql, &params, |row| {
+            let msg_type: i32 = row.get(2)?;
+            let sub_type: i32 = row.get(3)?;
+            let create_time: i64 = row.get(4)?;
+            let content: String = row.get(8)?;
+            let bytes_extra: Option<Vec<u8>> = row.get(10).ok();
+            let compress_content: Option<Vec<u8>> = row.get(11).ok();
+
+            // 解析消息内容
+            let (parsed_content, src, extra) = Self::parse_message_content(
+                msg_type,
+                sub_type,
+                &content,
+                bytes_extra.as_deref(),
+                compress_content.as_deref(),
+            );
+
+            Ok(Message {
+                id: 0,
+                local_id: row.get(0)?,
+                msg_svr_id: row.get(1)?,
+                msg_type,
+                sub_type,
+                type_name: crate::db::utils::get_message_type_name(msg_type, sub_type).to_string(),
+                create_time,
+                create_time_str: timestamp_to_string(create_time),
+                is_sender: row.get(5)?,
+                talker: row.get(6)?,
+                str_talker: row.get(7)?,
+                content: parsed_content,
+                display_content: row.get(9)?,
+                src,
+                extra,
+            })
+        })?;
+
+        // 为消息分配ID
+        let mut messages_with_id = Vec::new();
+        for (idx, mut msg) in messages.into_iter().enumerate() {
+            msg.id = idx as i64;
+            messages_with_id.push(msg);
+        }
+
+        Ok(messages_with_id)
+    }
 }
 
