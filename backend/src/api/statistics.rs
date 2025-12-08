@@ -11,5 +11,6 @@ pub fn router() -> Router {
         .route("/api/stat/date/chat", post(get_date_chat_stat))
         .route("/api/stat/date/heatmap", post(get_date_heatmap))
         .route("/api/stat/top/talkers", post(get_top_talkers))
+        .route("/api/stat/wordcloud/:wxid", post(get_wordcloud))
 }
 
