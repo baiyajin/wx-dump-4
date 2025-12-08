@@ -11,6 +11,7 @@ mod merge;
 mod favorite;
 mod moments;
 mod cleanup;
+mod tools;
 
 pub fn create_router(wx_offs: HashMap<String, Vec<u32>>) -> Router {
     Router::new()
@@ -24,6 +25,7 @@ pub fn create_router(wx_offs: HashMap<String, Vec<u32>>) -> Router {
         .merge(favorite::router())
         .merge(moments::router())
         .merge(cleanup::router())
+        .merge(tools::router())
         .route("/health", axum::routing::get(health_check))
 }
 
