@@ -116,14 +116,18 @@ import { chatApi } from '../api/index.js'
 import MessageItem from '../components/message/MessageItem.vue'
 
 const searchKeyword = ref('')
+const currentSearchKeyword = ref('')
 const contacts = ref([])
 const selectedContact = ref(null)
 const messages = ref([])
+const searchResults = ref([])
+const searchMode = ref(false)
 const userList = ref({})
 const loading = ref(false)
 const hasMore = ref(true)
 const currentPage = ref(0)
 const pageSize = 50
+const mergePath = ref('')
 
 const filteredContacts = computed(() => {
   let result = contacts.value

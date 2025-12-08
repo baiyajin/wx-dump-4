@@ -1,8 +1,17 @@
 <template>
-  <div class="message-item" :class="{ 'message-sent': isSender }">
+  <div 
+    class="message-item" 
+    :class="{ 'message-sent': isSender }"
+    @contextmenu.prevent="showContextMenu"
+    @mouseenter="showActions = true"
+    @mouseleave="showActions = false"
+  >
     <div class="message-header">
       <span class="message-sender">{{ senderName }}</span>
       <span class="message-time">{{ createTimeStr }}</span>
+      <div v-if="showActions" class="message-actions">
+        <button @click="copyMessage" class="action-btn" title="复制">📋</button>
+      </div>
     </div>
     <div class="message-body">
       <component 
@@ -14,7 +23,7 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import MessageText from './MessageText.vue'
 import MessageImg from './MessageImg.vue'
 import MessageVideo from './MessageVideo.vue'
@@ -22,6 +31,8 @@ import MessageAudio from './MessageAudio.vue'
 import MessageFile from './MessageFile.vue'
 import MessageEmoji from './MessageEmoji.vue'
 import MessageOther from './MessageOther.vue'
+
+const showActions = ref(false)
 
 const props = defineProps({
   msgType: {
@@ -91,6 +102,53 @@ const messageProps = computed(() => {
     typeName: props.typeName
   }
 })
+
+const copyMessage = async () => {
+  let textToCopy = props.content
+  
+  // 如果是其他类型消息，尝试从extra中提取信息
+  if (props.typeName !== '文本' && props.extra) {
+    if (props.extra.title) {
+      textToCopy = props.extra.title
+    } else if (props.extra.url) {
+      textToCopy = props.extra.url
+    } else if (props.src) {
+      textToCopy = props.src
+    }
+  }
+  
+  try {
+    await navigator.clipboard.writeText(textToCopy)
+    // 显示复制成功提示
+    const btn = event?.target
+    if (btn) {
+      const originalText = btn.textContent
+      btn.textContent = '✓'
+      setTimeout(() => {
+        btn.textContent = originalText
+      }, 1000)
+    }
+  } catch (err) {
+    // 降级方案：使用传统方法
+    const textArea = document.createElement('textarea')
+    textArea.value = textToCopy
+    textArea.style.position = 'fixed'
+    textArea.style.opacity = '0'
+    document.body.appendChild(textArea)
+    textArea.select()
+    try {
+      document.execCommand('copy')
+      alert('已复制到剪贴板')
+    } catch (e) {
+      alert('复制失败，请手动复制')
+    }
+    document.body.removeChild(textArea)
+  }
+}
+
+const showContextMenu = (event) => {
+  copyMessage()
+}
 </script>
 
 <style scoped>
@@ -121,6 +179,26 @@ const messageProps = computed(() => {
 
 .message-time {
   color: #999;
+}
+
+.message-actions {
+  display: flex;
+  gap: 4px;
+  margin-left: 8px;
+}
+
+.action-btn {
+  background: rgba(0, 0, 0, 0.1);
+  border: none;
+  border-radius: 4px;
+  padding: 4px 8px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background 0.2s;
+}
+
+.action-btn:hover {
+  background: rgba(0, 0, 0, 0.2);
 }
 
 .message-body {
