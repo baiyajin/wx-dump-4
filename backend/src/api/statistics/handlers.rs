@@ -1,6 +1,7 @@
 use axum::{Json, extract::Path};
 use std::collections::HashMap;
 use std::path::PathBuf;
+use regex::Regex;
 
 use crate::db::msg::MsgHandler;
 use crate::utils::{AppError, Result};
@@ -103,5 +104,84 @@ pub async fn get_top_talkers(
     let talkers = handler.get_top_talkers(top, req.start_time, req.end_time)?;
 
     Ok(Json(TopTalkersResponse { talkers }))
+}
+
+pub async fn get_wordcloud(
+    Path(wxid): Path<String>,
+    Json(req): Json<WordcloudRequest>
+) -> Result<Json<WordcloudResponse>> {
+    let db_path = PathBuf::from(&req.merge_path);
+    if !db_path.exists() {
+        return Err(AppError::NotFound(format!("Database not found: {}", req.merge_path)).into());
+    }
+
+    let handler = MsgHandler::new(db_path.to_str().unwrap())?;
+    handler.add_indexes()?;
+
+    // 获取文本消息内容
+    let messages = handler.get_msg_list(
+        Some(&wxid),
+        req.start_time,
+        req.end_time,
+        None,
+        None,
+    )?;
+
+    // 提取文本并统计词频
+    let mut word_count: HashMap<String, i64> = HashMap::new();
+    
+    for msg in messages {
+        // 只处理文本消息（msg_type = 1）
+        if msg.msg_type == Some(1) {
+            if let Some(ref content) = msg.content {
+                // 简单的分词：按中文字符、英文单词分割
+                let words = extract_words(content);
+                for word in words {
+                    if word.len() > 1 { // 过滤单字符
+                        *word_count.entry(word).or_insert(0) += 1;
+                    }
+                }
+            }
+        }
+    }
+
+    // 转换为Vec并排序
+    let mut word_list: Vec<WordData> = word_count
+        .into_iter()
+        .map(|(word, count)| WordData { word, count })
+        .collect();
+    
+    word_list.sort_by(|a, b| b.count.cmp(&a.count));
+    
+    // 限制返回数量
+    let limit = req.limit.unwrap_or(100);
+    word_list.truncate(limit);
+
+    Ok(Json(WordcloudResponse { words: word_list }))
+}
+
+/// 简单的分词函数：提取中文字词和英文单词
+fn extract_words(text: &str) -> Vec<String> {
+    let mut words = Vec::new();
+    
+    // 移除标点符号和特殊字符
+    let cleaned = text
+        .chars()
+        .filter(|c| c.is_alphanumeric() || c.is_whitespace() || (*c as u32 >= 0x4E00 && *c as u32 <= 0x9FFF))
+        .collect::<String>();
+    
+    // 提取中文词汇（2-4字词）
+    let chinese_re = Regex::new(r"[\u{4E00}-\u{9FFF}]{2,4}").unwrap();
+    for mat in chinese_re.find_iter(&cleaned) {
+        words.push(mat.as_str().to_string());
+    }
+    
+    // 提取英文单词
+    let english_re = Regex::new(r"\b[a-zA-Z]{2,}\b").unwrap();
+    for mat in english_re.find_iter(&cleaned) {
+        words.push(mat.as_str().to_lowercase());
+    }
+    
+    words
 }
 

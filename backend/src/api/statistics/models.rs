@@ -63,3 +63,23 @@ pub struct TopTalkersResponse {
     pub talkers: HashMap<String, serde_json::Value>,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct WordcloudRequest {
+    pub merge_path: String,
+    pub wxid: String,
+    pub start_time: Option<i64>,
+    pub end_time: Option<i64>,
+    pub limit: Option<usize>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct WordcloudResponse {
+    pub words: Vec<WordData>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct WordData {
+    pub word: String,
+    pub count: i64,
+}
+
