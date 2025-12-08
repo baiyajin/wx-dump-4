@@ -5,7 +5,9 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs --fix --ignore-path .gitignore",
+    "format": "prettier --write \"src/**/*.{js,jsx,ts,tsx,vue,json,css,scss,md}\""
   },
   "dependencies": {
     "vue": "^3.4.0",
@@ -18,7 +20,11 @@
     "vite": "^8.0.0",
     "unocss": "^0.58.0",
     "@unocss/preset-uno": "^0.58.0",
-    "@unocss/preset-icons": "^0.58.0"
+    "@unocss/preset-icons": "^0.58.0",
+    "eslint": "^8.57.0",
+    "eslint-plugin-vue": "^9.20.0",
+    "@vue/eslint-config-prettier": "^9.0.0",
+    "prettier": "^3.2.5"
   }
 }
 

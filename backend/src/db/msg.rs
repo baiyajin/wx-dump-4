@@ -1,92 +1,58 @@
-use crate::db::dbbase::DatabaseBase;
-use crate::db::msg_query::MsgQuery;
-use crate::db::msg_list::MsgList;
-use crate::utils::Result;
+// ... existing code ...
 
-/// MSG数据库处理器
-pub struct MsgHandler {
-    db_path: String,
-    db: DatabaseBase,
-    query: MsgQuery,
-    list: MsgList,
-}
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use tempfile::TempDir;
+    use rusqlite::Connection;
 
-impl MsgHandler {
-    pub fn new(db_path: &str) -> Result<Self> {
-        let db = DatabaseBase::new(db_path)?;
-        let db_path_str = db_path.to_string();
-        let query = MsgQuery::new(DatabaseBase::new(&db_path_str)?);
-        let list = MsgList::new(DatabaseBase::new(&db_path_str)?);
-        Ok(Self {
-            db_path: db_path_str,
-            db,
-            query,
-            list,
-        })
+    fn create_test_db() -> (TempDir, String) {
+        let temp_dir = TempDir::new().unwrap();
+        let db_path = temp_dir.path().join("test_msg.db");
+        let db_path_str = db_path.to_str().unwrap().to_string();
+        
+        // 创建测试数据库
+        let conn = Connection::open(&db_path).unwrap();
+        conn.execute(
+            "CREATE TABLE IF NOT EXISTS MSG (
+                localId INTEGER PRIMARY KEY,
+                StrTalker TEXT,
+                CreateTime INTEGER,
+                Type INTEGER,
+                SubType INTEGER,
+                StrContent TEXT,
+                CompressContent BLOB,
+                BytesExtra BLOB,
+                IsSender INTEGER
+            )",
+            [],
+        ).unwrap();
+        
+        // 插入测试数据
+        conn.execute(
+            "INSERT INTO MSG (StrTalker, CreateTime, Type, SubType, StrContent, IsSender) 
+             VALUES (?, ?, ?, ?, ?, ?)",
+            rusqlite::params!["test_wxid", 1234567890, 1, 0, "Test message", 1],
+        ).unwrap();
+        
+        (temp_dir, db_path_str)
     }
 
-    /// 添加索引以加快查询速度
-    pub fn add_indexes(&self) -> Result<()> {
-        if !self.db.table_exists("MSG") {
-            return Ok(());
-        }
-
-        self.db.execute_batch(
-            "CREATE INDEX IF NOT EXISTS idx_MSG_StrTalker ON MSG(StrTalker);
-             CREATE INDEX IF NOT EXISTS idx_MSG_CreateTime ON MSG(CreateTime);
-             CREATE INDEX IF NOT EXISTS idx_MSG_StrTalker_CreateTime ON MSG(StrTalker, CreateTime);"
-        )?;
-
-        Ok(())
+    #[test]
+    fn test_msg_handler_new() {
+        let (_temp_dir, db_path) = create_test_db();
+        let handler = MsgHandler::new(&db_path);
+        assert!(handler.is_ok());
     }
 
-    /// 获取消息数量
-    pub fn get_msg_count(&self, wxid: Option<&str>) -> Result<std::collections::HashMap<String, i64>> {
-        self.query.get_msg_count(wxid)
-    }
-
-    /// 获取消息列表（带用户信息）
-    pub fn get_msg_list_with_users(
-        &self,
-        wxid: Option<&str>,
-        start_index: i64,
-        page_size: i64,
-        start_time: Option<i64>,
-        end_time: Option<i64>,
-    ) -> Result<(Vec<crate::db::utils::Message>, Vec<String>)> {
-        self.list.get_msg_list_with_users(wxid, start_index, page_size, start_time, end_time)
-    }
-
-    /// 获取日期聊天统计
-    pub fn get_date_count(
-        &self,
-        wxid: Option<&str>,
-        start_time: Option<i64>,
-        end_time: Option<i64>,
-    ) -> Result<std::collections::HashMap<String, serde_json::Value>> {
-        self.query.get_date_count(wxid, start_time, end_time)
-    }
-
-    /// 搜索消息
-    pub fn search_messages(
-        &self,
-        wxid: Option<&str>,
-        keyword: &str,
-        start_time: Option<i64>,
-        end_time: Option<i64>,
-        limit: i64,
-    ) -> Result<Vec<crate::db::utils::Message>> {
-        self.list.search_messages(wxid, keyword, start_time, end_time, limit)
-    }
-
-    /// 获取聊天最多的联系人
-    pub fn get_top_talkers(
-        &self,
-        top: i64,
-        start_time: Option<i64>,
-        end_time: Option<i64>,
-    ) -> Result<std::collections::HashMap<String, serde_json::Value>> {
-        self.query.get_top_talkers(top, start_time, end_time)
+    #[test]
+    fn test_get_msg_count() {
+        let (_temp_dir, db_path) = create_test_db();
+        let handler = MsgHandler::new(&db_path).unwrap();
+        handler.add_indexes().unwrap();
+        
+        let counts = handler.get_msg_count(None).unwrap();
+        assert!(counts.contains_key("test_wxid"));
+        assert_eq!(counts["test_wxid"], 1);
     }
 }
-

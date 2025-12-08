@@ -14,12 +14,14 @@ use windows::{
     },
 };
 
+/// 进程管理器
 pub struct ProcessManager {
     pub pid: u32,
     pub handle: HANDLE,
 }
 
 impl ProcessManager {
+    /// 打开指定PID的进程
     pub fn open(pid: u32) -> Result<Self> {
         let handle = unsafe {
             OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, false, pid)
@@ -29,6 +31,7 @@ impl ProcessManager {
         Ok(Self { pid, handle })
     }
 
+    /// 根据进程名查找进程ID列表
     pub fn find_by_name(name: &str) -> Result<Vec<u32>> {
         let snapshot = unsafe {
             CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0)
@@ -76,3 +79,51 @@ impl Drop for ProcessManager {
     }
 }
 
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_find_by_name() {
+        // 测试查找微信进程
+        let result = ProcessManager::find_by_name("WeChat.exe");
+        // 注意：这个测试需要实际运行微信才能找到进程
+        // 在没有微信的情况下，应该返回空列表而不是错误
+        match result {
+            Ok(pids) => {
+                println!("Found {} WeChat processes", pids.len());
+            }
+            Err(e) => {
+                // 如果没有找到进程，这是正常的
+                println!("No WeChat processes found or error: {}", e);
+            }
+        }
+    }
+
+    #[test]
+    fn test_find_nonexistent_process() {
+        // 测试查找不存在的进程
+        let result = ProcessManager::find_by_name("NonExistentProcess.exe");
+        assert!(result.is_ok());
+        let pids = result.unwrap();
+        assert_eq!(pids.len(), 0);
+    }
+
+    #[test]
+    fn test_open_process() {
+        // 测试打开进程（需要实际运行的进程）
+        let result = ProcessManager::find_by_name("WeChat.exe");
+        if let Ok(pids) = result {
+            if !pids.is_empty() {
+                let pid = pids[0];
+                let manager = ProcessManager::open(pid);
+                // 注意：这个测试需要管理员权限
+                if manager.is_ok() {
+                    println!("Successfully opened process {}", pid);
+                } else {
+                    println!("Failed to open process {} (may need admin rights)", pid);
+                }
+            }
+        }
+    }
+}

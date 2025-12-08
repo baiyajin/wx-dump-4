@@ -54,6 +54,17 @@ tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 walkdir = "2.4"
 mime_guess = "2.0"
 
+# OpenAPI文档
+utoipa = { version = "4.2", features = ["axum_extras", "chrono"] }
+utoipa-swagger-ui = { version = "6.0", features = ["axum"] }
+
+# 测试框架
+[dev-dependencies]
+tokio-test = "0.4"
+mockall = "0.12"
+tempfile = "3.10"
+axum-test = "7.0"
+
 [profile.release]
 opt-level = 3
 lto = true

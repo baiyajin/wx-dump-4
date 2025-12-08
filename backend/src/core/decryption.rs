@@ -164,3 +164,40 @@ pub fn batch_decrypt(
     Ok(results)
 }
 
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use tempfile::TempDir;
+
+    #[test]
+    fn test_key_validation() {
+        // 测试密钥长度验证
+        let temp_dir = TempDir::new().unwrap();
+        let db_path = temp_dir.path().join("test.db");
+        let out_path = temp_dir.path().join("out.db");
+        
+        // 创建测试文件
+        std::fs::write(&db_path, vec![0u8; 100]).unwrap();
+        
+        // 测试密钥长度错误
+        let result = decrypt_db("invalid_key", &db_path, &out_path);
+        assert!(result.is_err());
+        
+        // 测试64字符密钥（但内容无效）
+        let long_key = "a".repeat(64);
+        let result = decrypt_db(&long_key, &db_path, &out_path);
+        // 这个会失败，因为密钥验证失败，但至少长度检查通过了
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_batch_decrypt_empty() {
+        // 测试空列表
+        let temp_dir = TempDir::new().unwrap();
+        let out_dir = temp_dir.path();
+        let result = batch_decrypt("a".repeat(64).as_str(), &[], out_dir);
+        assert!(result.is_ok());
+        assert_eq!(result.unwrap().len(), 0);
+    }
+}
+

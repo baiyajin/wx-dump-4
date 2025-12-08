@@ -1,0 +1,38 @@
+# Clippy代码检查配置
+# 允许的警告（可根据需要调整）
+allow = [
+    "too_many_arguments",      # 允许函数参数过多
+    "type_complexity",         # 允许复杂类型
+    "module_inception",        # 允许模块嵌套
+]
+
+# 拒绝的警告（强制修复）
+deny = [
+    "unused_must_use",         # 必须使用返回值
+    "unreachable_code",        # 不可达代码
+    "panic",                   # 禁止panic
+]
+
+# 警告级别
+warn = [
+    "clippy::all",             # 所有clippy检查
+    "clippy::pedantic",        # 严格检查
+    "clippy::nursery",         # 实验性检查
+    "clippy::cargo",           # Cargo相关检查
+]
+
+# 特定规则配置
+[clippy::cognitive_complexity]
+max = 30
+
+[clippy::cyclomatic_complexity]
+max = 25
+
+[clippy::too_many_lines]
+max_lines = 500
+
+[clippy::large_enum_variant]
+max_size = 200
+
+[clippy::type_size_limit]
+max_size = 500
