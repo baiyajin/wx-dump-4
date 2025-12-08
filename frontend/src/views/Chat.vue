@@ -39,25 +39,34 @@
           <h3>请选择联系人</h3>
         </div>
 
-        <div class="messages-container" ref="messagesContainer">
-          <MessageItem
-            v-for="message in messages"
-            :key="message.id"
-            :msg-type="message.msg_type"
-            :sub-type="message.sub_type"
-            :type-name="message.type_name"
-            :content="message.content"
-            :src="message.src"
-            :extra="message.extra"
-            :is-sender="message.is_sender"
-            :sender-name="message.is_sender === 1 ? '我' : (userList[message.talker]?.nickname || message.talker)"
-            :create-time-str="message.create_time_str"
-          />
-        </div>
-
-        <div v-if="loading" class="loading">加载中...</div>
-        <div v-if="hasMore && !loading" class="load-more" @click="loadMore">
-          加载更多
+        <div 
+          class="messages-container" 
+          ref="messagesContainer"
+          @scroll="handleScroll"
+        >
+          <div v-if="loading && messages.length === 0" class="loading">加载中...</div>
+          <div v-else-if="messages.length === 0" class="empty-state">
+            <p>暂无消息</p>
+          </div>
+          <template v-else>
+            <div v-if="loading" class="loading-top">加载历史消息...</div>
+            <MessageItem
+              v-for="message in messages"
+              :key="message.id"
+              :msg-type="message.msg_type"
+              :sub-type="message.sub_type"
+              :type-name="message.type_name"
+              :content="message.content"
+              :src="message.src"
+              :extra="message.extra"
+              :is-sender="message.is_sender"
+              :sender-name="message.is_sender === 1 ? '我' : (userList[message.talker]?.nickname || message.talker)"
+              :create-time-str="message.create_time_str"
+            />
+            <div v-if="!hasMore && messages.length > 0" class="no-more">
+              没有更多消息了
+            </div>
+          </template>
         </div>
       </div>
     </div>
@@ -78,15 +87,19 @@ const loading = ref(false)
 const hasMore = ref(true)
 const currentPage = ref(0)
 const pageSize = 50
-const mergePath = ref('')
 
 const filteredContacts = computed(() => {
-  if (!searchKeyword.value) {
-    return contacts.value
+  let result = contacts.value
+  
+  // 搜索过滤
+  if (searchKeyword.value) {
+    result = result.filter(contact =>
+      contact.wxid.toLowerCase().includes(searchKeyword.value.toLowerCase())
+    )
   }
-  return contacts.value.filter(contact =>
-    contact.wxid.toLowerCase().includes(searchKeyword.value.toLowerCase())
-  )
+  
+  // 按消息数量排序
+  return result.sort((a, b) => (b.msg_count || 0) - (a.msg_count || 0))
 })
 
 const selectContact = (contact) => {
@@ -94,7 +107,8 @@ const selectContact = (contact) => {
   messages.value = []
   currentPage.value = 0
   hasMore.value = true
-  loadMessages()
+  userList.value = {}
+  loadMessages(true) // 首次加载滚动到底部
 }
 
 const loadContacts = async () => {
@@ -108,7 +122,7 @@ const loadContacts = async () => {
   }
 }
 
-const loadMessages = async () => {
+const loadMessages = async (scrollToBottom = false) => {
   if (!selectedContact.value || loading.value) return
 
   loading.value = true
@@ -123,16 +137,37 @@ const loadMessages = async () => {
     if (response.data.messages.length === 0) {
       hasMore.value = false
     } else {
+      const oldScrollHeight = messagesContainer.value?.scrollHeight || 0
       messages.value = [...response.data.messages, ...messages.value]
       if (response.data.user_list) {
         userList.value = { ...userList.value, ...response.data.user_list }
       }
       currentPage.value++
+      
+      // 保持滚动位置（无限滚动向上加载）
+      if (messagesContainer.value && !scrollToBottom) {
+        const newScrollHeight = messagesContainer.value.scrollHeight
+        messagesContainer.value.scrollTop = newScrollHeight - oldScrollHeight
+      } else if (scrollToBottom && messagesContainer.value) {
+        // 首次加载或新消息时滚动到底部
+        setTimeout(() => {
+          messagesContainer.value.scrollTop = messagesContainer.value.scrollHeight
+        }, 100)
+      }
     }
   } catch (error) {
     console.error('加载消息失败:', error)
   } finally {
     loading.value = false
+  }
+}
+
+const handleScroll = () => {
+  if (!messagesContainer.value || !hasMore.value || loading.value) return
+  
+  // 当滚动到顶部附近时加载更多
+  if (messagesContainer.value.scrollTop < 100) {
+    loadMessages()
   }
 }
 
@@ -263,17 +298,32 @@ onMounted(() => {
 
 
 .loading,
-.load-more {
+.loading-top {
   text-align: center;
   padding: 16px;
   color: #666;
+  font-size: 14px;
 }
 
-.load-more {
-  cursor: pointer;
+.loading-top {
+  position: sticky;
+  top: 0;
+  background: rgba(255, 255, 255, 0.9);
+  z-index: 10;
 }
 
-.load-more:hover {
-  color: #2196f3;
+.empty-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: #999;
+}
+
+.no-more {
+  text-align: center;
+  padding: 16px;
+  color: #999;
+  font-size: 12px;
 }
 </style>
