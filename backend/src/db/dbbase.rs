@@ -1,6 +1,6 @@
 use crate::utils::Result;
 use anyhow::Context;
-use rusqlite::Connection;
+use rusqlite::{Connection, Row};
 use std::path::Path;
 
 pub struct DatabasePool {

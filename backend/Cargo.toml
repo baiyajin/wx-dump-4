@@ -45,7 +45,6 @@ regex = "1.10"
 winreg = "0.52"
 chrono = { version = "0.4", features = ["serde"] }
 lz4_flex = "0.11"
-hex = "0.4"
 
 # 日志
 tracing = "0.1"
