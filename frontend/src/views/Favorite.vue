@@ -22,9 +22,19 @@
             v-for="favorite in filteredFavorites"
             :key="favorite.id"
             class="favorite-item"
+            @click="viewFavoriteDetail(favorite)"
           >
             <div class="favorite-type">{{ favorite.type_name }}</div>
-            <div class="favorite-content">{{ favorite.content }}</div>
+            <div class="favorite-content">
+              <div v-if="favorite.type_name === '图片' && favorite.src" class="favorite-preview">
+                <img :src="favorite.src" alt="图片" @error="handleImageError" />
+              </div>
+              <div v-else-if="favorite.type_name === '链接' && favorite.extra" class="favorite-link">
+                <div class="link-title">{{ favorite.extra.title || '链接' }}</div>
+                <div class="link-description">{{ favorite.extra.des || favorite.content }}</div>
+              </div>
+              <div v-else class="favorite-text">{{ favorite.content }}</div>
+            </div>
             <div class="favorite-time">{{ favorite.create_time_str }}</div>
           </div>
         </div>
@@ -59,6 +69,17 @@ const filteredFavorites = computed(() => {
     fav.type_name.toLowerCase().includes(keyword)
   )
 })
+
+const viewFavoriteDetail = (favorite) => {
+  // 如果是链接，在新窗口打开
+  if (favorite.type_name === '链接' && favorite.extra?.url) {
+    window.open(favorite.extra.url, '_blank')
+  }
+}
+
+const handleImageError = (e) => {
+  e.target.style.display = 'none'
+}
 
 const loadFavorites = async () => {
   if (!mergePath.value) {
@@ -131,6 +152,13 @@ onMounted(() => {
   border-radius: 8px;
   padding: 16px;
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.favorite-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
 }
 
 .favorite-type {
@@ -143,6 +171,29 @@ onMounted(() => {
   line-height: 1.6;
   margin-bottom: 8px;
   word-wrap: break-word;
+}
+
+.favorite-preview img {
+  max-width: 100%;
+  max-height: 300px;
+  border-radius: 4px;
+  margin-top: 8px;
+}
+
+.favorite-link {
+  margin-top: 8px;
+}
+
+.link-title {
+  font-weight: 500;
+  color: #2196f3;
+  margin-bottom: 4px;
+}
+
+.link-description {
+  font-size: 14px;
+  color: #666;
+  line-height: 1.5;
 }
 
 .favorite-time {

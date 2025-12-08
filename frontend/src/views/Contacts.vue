@@ -43,6 +43,48 @@
       <div v-if="loading" class="loading">加载中...</div>
       <div v-if="error" class="error">{{ error }}</div>
     </div>
+
+    <!-- 联系人详情弹窗 -->
+    <div v-if="showDetail && selectedContact" class="detail-modal" @click.self="closeDetail">
+      <div class="detail-content">
+        <div class="detail-header">
+          <h3>联系人详情</h3>
+          <button @click="closeDetail" class="close-btn">×</button>
+        </div>
+        <div class="detail-body">
+          <div class="detail-avatar-large">
+            {{ getAvatarText(selectedContact) }}
+          </div>
+          <div class="detail-info">
+            <div class="detail-item">
+              <label>微信ID:</label>
+              <span>{{ selectedContact.wxid }}</span>
+            </div>
+            <div v-if="selectedContact.nickname" class="detail-item">
+              <label>昵称:</label>
+              <span>{{ selectedContact.nickname }}</span>
+            </div>
+            <div v-if="selectedContact.remark" class="detail-item">
+              <label>备注:</label>
+              <span>{{ selectedContact.remark }}</span>
+            </div>
+            <div v-if="selectedContact.account" class="detail-item">
+              <label>账号:</label>
+              <span>{{ selectedContact.account }}</span>
+            </div>
+            <div v-if="selectedContact.msg_count !== undefined" class="detail-item">
+              <label>消息数:</label>
+              <span>{{ selectedContact.msg_count }}</span>
+            </div>
+          </div>
+          <div class="detail-actions">
+            <button @click="$router.push(`/chat?wxid=${selectedContact.wxid}`)" class="btn-primary">
+              查看聊天记录
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -86,9 +128,29 @@ const getAvatarText = (contact) => {
   return name.charAt(0).toUpperCase()
 }
 
-const viewContactDetail = (contact) => {
-  // 跳转到聊天页面或显示详情
-  console.log('View contact:', contact)
+const selectedContact = ref(null)
+const showDetail = ref(false)
+
+const viewContactDetail = async (contact) => {
+  selectedContact.value = contact
+  showDetail.value = true
+  
+  // 获取联系人详情
+  try {
+    const response = await chatApi.getContactDetail(contact.wxid, {
+      merge_path: mergePath.value
+    })
+    if (response.data) {
+      selectedContact.value = { ...contact, ...response.data }
+    }
+  } catch (err) {
+    console.error('获取联系人详情失败:', err)
+  }
+}
+
+const closeDetail = () => {
+  showDetail.value = false
+  selectedContact.value = null
 }
 
 const loadContacts = async () => {
@@ -237,6 +299,116 @@ onMounted(() => {
 
 .error {
   color: #f44336;
+}
+
+.detail-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.detail-content {
+  background: white;
+  border-radius: 8px;
+  width: 90%;
+  max-width: 500px;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.detail-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.detail-header h3 {
+  margin: 0;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: #666;
+  padding: 0;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.close-btn:hover {
+  color: #000;
+}
+
+.detail-body {
+  padding: 24px;
+}
+
+.detail-avatar-large {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: #2196f3;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32px;
+  font-weight: bold;
+  margin: 0 auto 24px;
+}
+
+.detail-info {
+  margin-bottom: 24px;
+}
+
+.detail-item {
+  display: flex;
+  padding: 12px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.detail-item label {
+  font-weight: 500;
+  width: 80px;
+  color: #666;
+}
+
+.detail-item span {
+  flex: 1;
+}
+
+.detail-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.btn-primary {
+  flex: 1;
+  padding: 10px;
+  background: #2196f3;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.btn-primary:hover {
+  background: #1976d2;
 }
 </style>
 

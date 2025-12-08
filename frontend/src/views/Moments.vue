@@ -18,13 +18,30 @@
               <div class="moment-author">{{ moment.user_name }}</div>
               <div class="moment-time">{{ moment.create_time_str }}</div>
             </div>
-            <div class="moment-content">{{ moment.content }}</div>
+            <div v-if="moment.content" class="moment-content">{{ moment.content }}</div>
+            <div v-if="moment.media_list && moment.media_list.length > 0" class="moment-media">
+              <div class="media-grid" :class="`grid-${Math.min(moment.media_list.length, 9)}`">
+                <img
+                  v-for="(media, index) in moment.media_list"
+                  :key="index"
+                  :src="media"
+                  alt="朋友圈图片"
+                  @click="viewImage(media, moment.media_list)"
+                  class="media-item"
+                />
+              </div>
+            </div>
           </div>
         </div>
 
         <div v-if="loading" class="loading">加载中...</div>
         <div v-if="error" class="error">{{ error }}</div>
       </div>
+    </div>
+
+    <!-- 图片查看器 -->
+    <div v-if="imageViewer.show" class="image-viewer" @click="closeImageViewer">
+      <img :src="imageViewer.current" alt="朋友圈图片" class="viewer-image" />
     </div>
   </div>
 </template>
@@ -40,6 +57,19 @@ const mergePath = ref('')
 const total = ref(0)
 const currentPage = ref(0)
 const pageSize = 50
+const imageViewer = ref({ show: false, current: '', list: [] })
+
+const viewImage = (src, list) => {
+  imageViewer.value = {
+    show: true,
+    current: src,
+    list: list || [src]
+  }
+}
+
+const closeImageViewer = () => {
+  imageViewer.value = { show: false, current: '', list: [] }
+}
 
 const loadMoments = async () => {
   if (!mergePath.value) {
@@ -124,6 +154,67 @@ onMounted(() => {
 .moment-content {
   line-height: 1.6;
   word-wrap: break-word;
+  margin-bottom: 12px;
+}
+
+.moment-media {
+  margin-top: 12px;
+}
+
+.media-grid {
+  display: grid;
+  gap: 8px;
+}
+
+.media-grid.grid-1 {
+  grid-template-columns: 1fr;
+}
+
+.media-grid.grid-2,
+.media-grid.grid-4 {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.media-grid.grid-3,
+.media-grid.grid-5,
+.media-grid.grid-6,
+.media-grid.grid-7,
+.media-grid.grid-8,
+.media-grid.grid-9 {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.media-item {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.media-item:hover {
+  transform: scale(1.05);
+}
+
+.image-viewer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  cursor: pointer;
+}
+
+.viewer-image {
+  max-width: 90%;
+  max-height: 90%;
+  object-fit: contain;
 }
 
 .loading,
