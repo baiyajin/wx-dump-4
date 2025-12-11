@@ -12,6 +12,7 @@ mod favorite;
 mod moments;
 mod cleanup;
 mod tools;
+mod openapi;
 
 pub fn create_router(wx_offs: HashMap<String, Vec<u32>>) -> Router {
     Router::new()
@@ -27,6 +28,7 @@ pub fn create_router(wx_offs: HashMap<String, Vec<u32>>) -> Router {
         .merge(cleanup::router())
         .merge(tools::router())
         .route("/health", axum::routing::get(health_check))
+        .merge(openapi::swagger_router())
 }
 
 async fn health_check() -> &'static str {
