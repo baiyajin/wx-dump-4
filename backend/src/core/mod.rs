@@ -3,6 +3,7 @@ pub mod memory;
 pub mod memory_map;
 pub mod decryption;
 pub mod version;
+pub mod version_detection;
 pub mod wx_info;
 pub mod file_version;
 
