@@ -9,6 +9,7 @@ pub mod sns;
 pub mod merge;
 pub mod msg_parser;
 pub mod bytes_extra;
+pub mod protobuf_parser;
 pub mod lz4_utils;
 pub mod utils;
 
