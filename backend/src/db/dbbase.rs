@@ -88,5 +88,10 @@ impl DatabaseBase {
         conn.execute_batch(sql)?;
         Ok(())
     }
+
+    /// 获取数据库路径
+    pub fn get_db_path(&self) -> &str {
+        &self.pool.db_path
+    }
 }
 
