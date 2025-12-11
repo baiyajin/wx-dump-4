@@ -112,3 +112,70 @@ impl ContactHandler {
     }
 }
 
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use tempfile::TempDir;
+    use rusqlite::Connection;
+
+    fn create_test_db() -> (TempDir, String) {
+        let temp_dir = TempDir::new().unwrap();
+        let db_path = temp_dir.path().join("test_contact.db");
+        let db_path_str = db_path.to_str().unwrap().to_string();
+        
+        let conn = Connection::open(&db_path).unwrap();
+        conn.execute(
+            "CREATE TABLE IF NOT EXISTS Contact (
+                UserName TEXT PRIMARY KEY,
+                NickName TEXT,
+                Remark TEXT,
+                Alias TEXT,
+                HeadImgUrl TEXT,
+                Type INTEGER
+            )",
+            [],
+        ).unwrap();
+        
+        conn.execute(
+            "INSERT INTO Contact (UserName, NickName, Remark, Type) 
+             VALUES (?, ?, ?, ?)",
+            rusqlite::params!["test_wxid", "Test Nickname", "Test Remark", 1],
+        ).unwrap();
+        
+        (temp_dir, db_path_str)
+    }
+
+    #[test]
+    fn test_contact_handler_new() {
+        let (_temp_dir, db_path) = create_test_db();
+        let handler = ContactHandler::new(&db_path);
+        assert!(handler.is_ok());
+    }
+
+    #[test]
+    fn test_get_contacts() {
+        let (_temp_dir, db_path) = create_test_db();
+        let handler = ContactHandler::new(&db_path).unwrap();
+        let contacts = handler.get_contacts().unwrap();
+        assert_eq!(contacts.len(), 1);
+        assert_eq!(contacts[0].wxid, "test_wxid");
+    }
+
+    #[test]
+    fn test_get_contact() {
+        let (_temp_dir, db_path) = create_test_db();
+        let handler = ContactHandler::new(&db_path).unwrap();
+        let contact = handler.get_contact("test_wxid").unwrap();
+        assert!(contact.is_some());
+        assert_eq!(contact.unwrap().wxid, "test_wxid");
+    }
+
+    #[test]
+    fn test_search_contacts() {
+        let (_temp_dir, db_path) = create_test_db();
+        let handler = ContactHandler::new(&db_path).unwrap();
+        let contacts = handler.search_contacts("Test").unwrap();
+        assert!(!contacts.is_empty());
+    }
+}
+
