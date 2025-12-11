@@ -4,6 +4,7 @@ use crate::core::{
     memory_map::MemoryMap,
     process::ProcessManager,
     version,
+    version_detection::VersionOffsetDetector,
 };
 use crate::utils::Result;
 use anyhow::Context;
@@ -83,7 +84,39 @@ pub fn get_info_details(pid: u32, wx_offs: &HashMap<String, Vec<u32>>) -> Result
     };
 
     // 根据偏移量获取信息
-    if let Some(bias_list) = version::get_version_offset(&version, wx_offs) {
+    let mut bias_list_opt: Option<&Vec<u32>> = version::get_version_offset(&version, wx_offs);
+    let mut detected_offs: Option<Vec<u32>> = None;
+    
+    // 如果配置中没有偏移量，尝试自动检测
+    if bias_list_opt.is_none() {
+        tracing::info!("版本 {} 的偏移量未找到，尝试自动检测...", version);
+        match VersionOffsetDetector::detect_offsets(pid, &version) {
+            Ok(offs) => {
+                detected_offs = Some(offs.clone());
+                // 验证检测到的偏移量
+                if VersionOffsetDetector::validate_offsets(pid, &version, &detected_offs.as_ref().unwrap(), wx_offs)? {
+                    tracing::info!("成功自动检测到版本 {} 的偏移量", version);
+                    // 可选：保存检测到的偏移量到配置文件
+                    // 这里暂时不自动保存，需要用户确认
+                } else {
+                    tracing::warn!("自动检测到的偏移量验证失败");
+                    detected_offs = None;
+                }
+            }
+            Err(e) => {
+                tracing::warn!("自动检测偏移量失败: {}", e);
+            }
+        }
+    }
+    
+    // 使用检测到的偏移量或配置中的偏移量
+    let bias_list = if let Some(ref detected) = detected_offs {
+        Some(detected.as_slice())
+    } else {
+        bias_list_opt.map(|v| v.as_slice())
+    };
+    
+    if let Some(bias_list) = bias_list {
         if bias_list.len() >= 5 {
             let name_bias = bias_list[0] as usize;
             let account_bias = bias_list[1] as usize;
