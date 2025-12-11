@@ -81,7 +81,7 @@
           ref="messagesContainer"
           @scroll="handleScroll"
         >
-          <div v-if="loading && messages.length === 0" class="loading">加载中...</div>
+          <SkeletonLoader v-if="loading && messages.length === 0" :count="5" />
           <div v-else-if="messages.length === 0" class="empty-state">
             <p>暂无消息</p>
           </div>
@@ -114,6 +114,7 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import { chatApi } from '../api/index.js'
 import MessageItem from '../components/message/MessageItem.vue'
+import SkeletonLoader from '../components/SkeletonLoader.vue'
 
 const searchKeyword = ref('')
 const currentSearchKeyword = ref('')
