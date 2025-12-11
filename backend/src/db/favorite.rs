@@ -102,3 +102,60 @@ impl FavoriteHandler {
     }
 }
 
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use tempfile::TempDir;
+    use rusqlite::Connection;
+
+    fn create_test_db() -> (TempDir, String) {
+        let temp_dir = TempDir::new().unwrap();
+        let db_path = temp_dir.path().join("test_favorite.db");
+        let db_path_str = db_path.to_str().unwrap().to_string();
+        
+        let conn = Connection::open(&db_path).unwrap();
+        conn.execute(
+            "CREATE TABLE IF NOT EXISTS Favorite (
+                localId INTEGER PRIMARY KEY,
+                TalkerId TEXT,
+                Content TEXT,
+                CreateTime INTEGER,
+                Type INTEGER,
+                Reserved0 TEXT
+            )",
+            [],
+        ).unwrap();
+        
+        conn.execute(
+            "INSERT INTO Favorite (TalkerId, Content, CreateTime, Type) 
+             VALUES (?, ?, ?, ?)",
+            rusqlite::params!["test_wxid", "Test favorite content", 1234567890, 1],
+        ).unwrap();
+        
+        (temp_dir, db_path_str)
+    }
+
+    #[test]
+    fn test_favorite_handler_new() {
+        let (_temp_dir, db_path) = create_test_db();
+        let handler = FavoriteHandler::new(&db_path);
+        assert!(handler.is_ok());
+    }
+
+    #[test]
+    fn test_get_favorite_list() {
+        let (_temp_dir, db_path) = create_test_db();
+        let handler = FavoriteHandler::new(&db_path).unwrap();
+        let favorites = handler.get_favorite_list(0, 10, None, None).unwrap();
+        assert!(!favorites.is_empty());
+    }
+
+    #[test]
+    fn test_get_favorite_count() {
+        let (_temp_dir, db_path) = create_test_db();
+        let handler = FavoriteHandler::new(&db_path).unwrap();
+        let count = handler.get_favorite_count().unwrap();
+        assert_eq!(count, 1);
+    }
+}
+
