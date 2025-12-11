@@ -87,3 +87,59 @@ impl SnsHandler {
     }
 }
 
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use tempfile::TempDir;
+    use rusqlite::Connection;
+
+    fn create_test_db() -> (TempDir, String) {
+        let temp_dir = TempDir::new().unwrap();
+        let db_path = temp_dir.path().join("test_sns.db");
+        let db_path_str = db_path.to_str().unwrap().to_string();
+        
+        let conn = Connection::open(&db_path).unwrap();
+        conn.execute(
+            "CREATE TABLE IF NOT EXISTS FeedsV20 (
+                FeedId INTEGER PRIMARY KEY,
+                CreateTime INTEGER,
+                UserName TEXT,
+                Content TEXT,
+                Type INTEGER
+            )",
+            [],
+        ).unwrap();
+        
+        conn.execute(
+            "INSERT INTO FeedsV20 (FeedId, CreateTime, UserName, Content, Type) 
+             VALUES (?, ?, ?, ?, ?)",
+            rusqlite::params![1, 1234567890, "test_user", "Test moment content", 1],
+        ).unwrap();
+        
+        (temp_dir, db_path_str)
+    }
+
+    #[test]
+    fn test_sns_handler_new() {
+        let (_temp_dir, db_path) = create_test_db();
+        let handler = SnsHandler::new(&db_path);
+        assert!(handler.is_ok());
+    }
+
+    #[test]
+    fn test_get_moments_list() {
+        let (_temp_dir, db_path) = create_test_db();
+        let handler = SnsHandler::new(&db_path).unwrap();
+        let moments = handler.get_moments_list(0, 10, None, None).unwrap();
+        assert!(!moments.is_empty());
+    }
+
+    #[test]
+    fn test_get_moments_count() {
+        let (_temp_dir, db_path) = create_test_db();
+        let handler = SnsHandler::new(&db_path).unwrap();
+        let count = handler.get_moments_count().unwrap();
+        assert_eq!(count, 1);
+    }
+}
+
