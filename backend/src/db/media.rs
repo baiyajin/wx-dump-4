@@ -108,3 +108,61 @@ impl MediaHandler {
     }
 }
 
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use tempfile::TempDir;
+    use rusqlite::Connection;
+
+    fn create_test_db() -> (TempDir, String) {
+        let temp_dir = TempDir::new().unwrap();
+        let db_path = temp_dir.path().join("test_media.db");
+        let db_path_str = db_path.to_str().unwrap().to_string();
+        
+        let conn = Connection::open(&db_path).unwrap();
+        conn.execute(
+            "CREATE TABLE IF NOT EXISTS Media (
+                MsgSvrId INTEGER PRIMARY KEY,
+                BigHeadImgUrl TEXT,
+                SmallHeadImgUrl TEXT,
+                Reserved0 INTEGER,
+                Reserved1 INTEGER,
+                Reserved2 INTEGER
+            )",
+            [],
+        ).unwrap();
+        
+        conn.execute(
+            "INSERT INTO Media (MsgSvrId, BigHeadImgUrl, Reserved1, Reserved2) 
+             VALUES (?, ?, ?, ?)",
+            rusqlite::params![12345, "http://example.com/image.jpg", 3, 1234567890],
+        ).unwrap();
+        
+        (temp_dir, db_path_str)
+    }
+
+    #[test]
+    fn test_media_handler_new() {
+        let (_temp_dir, db_path) = create_test_db();
+        let handler = MediaHandler::new(&db_path);
+        assert!(handler.is_ok());
+    }
+
+    #[test]
+    fn test_get_media_info() {
+        let (_temp_dir, db_path) = create_test_db();
+        let handler = MediaHandler::new(&db_path).unwrap();
+        let media = handler.get_media_info(12345).unwrap();
+        assert!(media.is_some());
+        assert_eq!(media.unwrap().msg_id, 12345);
+    }
+
+    #[test]
+    fn test_get_image_list() {
+        let (_temp_dir, db_path) = create_test_db();
+        let handler = MediaHandler::new(&db_path).unwrap();
+        let images = handler.get_image_list("test_wxid", Some(10)).unwrap();
+        assert!(!images.is_empty());
+    }
+}
+
