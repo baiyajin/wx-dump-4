@@ -1,7 +1,10 @@
 use crate::db::dbbase::DatabaseBase;
 use crate::utils::{Result, cache::CacheManager};
 use std::collections::HashMap;
-use std::sync::Arc;
+use std::sync::LazyLock;
+
+// 全局缓存管理器
+static CACHE: LazyLock<CacheManager> = LazyLock::new(|| CacheManager::new());
 
 /// 消息查询相关功能
 pub struct MsgQuery {
@@ -13,12 +16,19 @@ impl MsgQuery {
         Self { db }
     }
 
-    /// 获取消息数量
+    /// 获取消息数量（带缓存）
     pub fn get_msg_count(&self, wxid: Option<&str>) -> Result<HashMap<String, i64>> {
         if !self.db.table_exists("MSG") {
             return Ok(HashMap::new());
         }
 
+        // 尝试从缓存获取
+        let cache_key = CacheManager::msg_count_key(self.db.get_db_path(), wxid);
+        if let Some(cached) = CACHE.msg_count.get(&cache_key) {
+            return Ok(cached);
+        }
+
+        // 使用索引优化查询
         let sql = if let Some(wxid) = wxid {
             "SELECT StrTalker, COUNT(*) FROM MSG WHERE StrTalker = ? GROUP BY StrTalker"
         } else {
@@ -40,7 +50,7 @@ impl MsgQuery {
             result.insert(talker, count);
         }
 
-        // 获取总数
+        // 获取总数（使用索引）
         let total: i64 = self.db.execute_query(
             "SELECT COUNT(*) FROM MSG",
             &[],
@@ -48,10 +58,14 @@ impl MsgQuery {
         )?.first().copied().unwrap_or(0);
 
         result.insert("total".to_string(), total);
+        
+        // 存入缓存
+        CACHE.msg_count.set(cache_key, result.clone());
+        
         Ok(result)
     }
 
-    /// 获取日期聊天统计
+    /// 获取日期聊天统计（带缓存）
     pub fn get_date_count(
         &self,
         wxid: Option<&str>,
@@ -62,6 +76,13 @@ impl MsgQuery {
             return Ok(HashMap::new());
         }
 
+        // 尝试从缓存获取
+        let cache_key = CacheManager::date_stats_key(self.db.get_db_path(), wxid, start_time, end_time);
+        if let Some(cached) = CACHE.date_stats.get(&cache_key) {
+            return Ok(cached);
+        }
+
+        // 使用索引优化查询（CreateTime索引）
         let mut sql = String::from(
             "SELECT strftime('%Y-%m-%d', CreateTime, 'unixepoch', 'localtime') AS date,
                     COUNT(*) AS total_count,
@@ -109,6 +130,9 @@ impl MsgQuery {
                 }),
             );
         }
+
+        // 存入缓存
+        CACHE.date_stats.set(cache_key, result.clone());
 
         Ok(result)
     }
