@@ -1,8 +1,10 @@
 use crate::utils::Result;
+use crate::db::protobuf_parser::ProtobufParser;
 use regex::Regex;
 use std::collections::HashMap;
 
 /// BytesExtra解析器
+/// 优先使用Protobuf解析，失败时回退到正则表达式
 pub struct BytesExtraParser;
 
 impl BytesExtraParser {
@@ -37,11 +39,18 @@ impl BytesExtraParser {
     }
 
     /// 提取图片路径（优先Image目录）
+    /// 优先使用Protobuf解析，失败时使用正则表达式
     pub fn extract_image_path(bytes_extra: &[u8]) -> Option<String> {
         if bytes_extra.is_empty() {
             return None;
         }
 
+        // 优先尝试Protobuf解析
+        if let Some(path) = ProtobufParser::extract_image_path(bytes_extra) {
+            return Some(path);
+        }
+
+        // 回退到正则表达式解析
         let text = String::from_utf8_lossy(bytes_extra);
         
         // 匹配所有FileStorage路径
@@ -73,11 +82,18 @@ impl BytesExtraParser {
     }
 
     /// 提取视频路径（优先mp4）
+    /// 优先使用Protobuf解析，失败时使用正则表达式
     pub fn extract_video_path(bytes_extra: &[u8]) -> Option<String> {
         if bytes_extra.is_empty() {
             return None;
         }
 
+        // 优先尝试Protobuf解析
+        if let Some(path) = ProtobufParser::extract_video_path(bytes_extra) {
+            return Some(path);
+        }
+
+        // 回退到正则表达式解析
         let text = String::from_utf8_lossy(bytes_extra);
         
         let pattern = r"FileStorage[^']*";
@@ -108,11 +124,18 @@ impl BytesExtraParser {
     }
 
     /// 提取文件URL
+    /// 优先使用Protobuf解析，失败时使用正则表达式
     pub fn extract_file_url(bytes_extra: &[u8]) -> Option<String> {
         if bytes_extra.is_empty() {
             return None;
         }
 
+        // 优先尝试Protobuf解析
+        if let Some(url) = ProtobufParser::extract_file_url(bytes_extra) {
+            return Some(url);
+        }
+
+        // 回退到正则表达式解析
         let text = String::from_utf8_lossy(bytes_extra);
         
         // 尝试匹配URL
