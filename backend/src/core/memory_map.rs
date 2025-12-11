@@ -119,3 +119,54 @@ impl MemoryMap {
     }
 }
 
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_get_modules() {
+        // 测试获取当前进程的模块列表
+        let current_pid = std::process::id();
+        let result = MemoryMap::get_modules(current_pid);
+        
+        // 应该能获取到模块列表
+        if let Ok(modules) = result {
+            assert!(!modules.is_empty());
+            println!("Found {} modules in current process", modules.len());
+        }
+    }
+
+    #[test]
+    fn test_find_wechatwin_dll() {
+        // 测试查找WeChatWin.dll（需要微信进程运行）
+        let pids = crate::core::process::ProcessManager::find_by_name("WeChat.exe");
+        
+        if let Ok(pids) = pids {
+            if !pids.is_empty() {
+                let pid = pids[0];
+                let result = MemoryMap::find_wechatwin_dll(pid);
+                // 如果微信运行，应该能找到WeChatWin.dll
+                if let Ok(Some(module)) = result {
+                    println!("Found WeChatWin.dll at 0x{:x}", module.base_address);
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn test_get_wechatwin_base_address() {
+        // 测试获取WeChatWin.dll基址
+        let pids = crate::core::process::ProcessManager::find_by_name("WeChat.exe");
+        
+        if let Ok(pids) = pids {
+            if !pids.is_empty() {
+                let pid = pids[0];
+                let result = MemoryMap::get_wechatwin_base_address(pid);
+                if result.is_ok() {
+                    println!("WeChatWin.dll base address: 0x{:x}", result.unwrap());
+                }
+            }
+        }
+    }
+}
+
