@@ -186,3 +186,72 @@ pub struct MemoryMap {
     pub file_name: Option<String>,
 }
 
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::core::process::ProcessManager;
+
+    #[test]
+    fn test_read_memory() {
+        // 测试读取内存（需要实际运行的进程）
+        let pids = ProcessManager::find_by_name("WeChat.exe");
+        
+        if let Ok(pids) = pids {
+            if !pids.is_empty() {
+                let pid = pids[0];
+                if let Ok(process) = ProcessManager::open(pid) {
+                    let memory = MemoryManager::new(process.handle);
+                    // 尝试读取一个有效的内存地址（需要根据实际情况调整）
+                    // 这里只是测试接口，不保证地址有效
+                    let result = memory.read_memory(0x1000000, 1024);
+                    // 读取可能成功或失败，取决于地址是否有效
+                    if result.is_ok() {
+                        println!("Successfully read memory");
+                    }
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn test_read_string() {
+        // 测试读取字符串
+        let pids = ProcessManager::find_by_name("WeChat.exe");
+        
+        if let Ok(pids) = pids {
+            if !pids.is_empty() {
+                let pid = pids[0];
+                if let Ok(process) = ProcessManager::open(pid) {
+                    let memory = MemoryManager::new(process.handle);
+                    // 测试读取字符串（需要有效的地址）
+                    let result = memory.read_string(0x1000000, 256);
+                    // 可能成功或失败
+                    if result.is_ok() {
+                        println!("Successfully read string");
+                    }
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn test_read_pointer() {
+        // 测试读取指针
+        let pids = ProcessManager::find_by_name("WeChat.exe");
+        
+        if let Ok(pids) = pids {
+            if !pids.is_empty() {
+                let pid = pids[0];
+                if let Ok(process) = ProcessManager::open(pid) {
+                    let memory = MemoryManager::new(process.handle);
+                    // 测试读取64位指针
+                    let result = memory.read_pointer(0x1000000, 8);
+                    if result.is_ok() {
+                        println!("Read pointer value: 0x{:x}", result.unwrap());
+                    }
+                }
+            }
+        }
+    }
+}
+
