@@ -99,3 +99,37 @@ pub fn get_process_exe_path(pid: u32) -> Result<String> {
     }
 }
 
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::path::PathBuf;
+
+    #[test]
+    fn test_get_file_version_info() {
+        // 测试获取文件版本信息
+        // 注意：这个测试需要实际存在的文件
+        // 可以测试系统文件如notepad.exe
+        let system32 = std::env::var("WINDIR")
+            .map(|w| PathBuf::from(w).join("System32").join("notepad.exe"))
+            .ok();
+        
+        if let Some(path) = system32 {
+            if path.exists() {
+                let result = get_file_version_info(&path);
+                // 如果文件存在，应该能获取版本信息
+                if result.is_ok() {
+                    println!("Notepad version: {}", result.unwrap());
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn test_get_file_version_info_invalid() {
+        // 测试无效文件路径
+        let invalid_path = PathBuf::from("C:\\NonExistentFile.exe");
+        let result = get_file_version_info(&invalid_path);
+        assert!(result.is_err());
+    }
+}
+
