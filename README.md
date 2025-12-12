@@ -319,37 +319,6 @@ npm run dev
   <p><em>扫码加入QQ群，获取技术支持 💬</em></p>
 </div>
 
-## 相关链接
+## 相关仓库
 
-- [Git提交历史](https://github.com/baiyajin/wx-dump-4/commits/main)
-- [GitHub仓库](https://github.com/baiyajin/wx-dump-4)
-
-## 推荐项目
-
-如果你对微信数据管理感兴趣，推荐关注以下项目：
-
-### [my-wx-4](https://github.com/baiyajin/my-wx-4) - 我的微信我做主
-
-<div align="center">
-  <a href="https://github.com/baiyajin/my-wx-4">
-    <img src="https://raw.githubusercontent.com/baiyajin/my-wx-4/main/logo.png" alt="my-wx-4 Logo" width="200">
-  </a>
-  <p><strong>多平台微信管理解决方案</strong></p>
-</div>
-
-**项目简介**：通过 Hook 技术实现微信客户端的深度集成，提供数据同步、远程控制等功能。
-
-**主要特性**：
-- ✅ Hook 微信客户端，实时同步数据
-- ✅ 好友列表、朋友圈、标签数据同步
-- ✅ 远程发送消息、点赞、评论朋友圈
-- ✅ 多端数据实时同步（Windows + Flutter + Python FastAPI）
-- ✅ 授权码管理系统
-- ✅ 版本更新管理
-
-**技术栈**：
-- Windows 客户端：.NET 9.0 + WPF / Rust + egui
-- 移动端应用：Flutter
-- 后端服务：Python FastAPI
-
-👉 [访问项目](https://github.com/baiyajin/my-wx-4)
+- [my-wx-4仓库](https://github.com/baiyajin/my-wx-4)
